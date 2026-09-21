@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { NavLink } from "react-router";
 
 const Navbar = ({
   currentScreen,
@@ -226,13 +227,13 @@ const Navbar = ({
 
         {/* Right Action Utilities */}
         <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
-          <button
+          <NavLink
+          to={'/register'}
             type="button"
-            onClick={() => onNavigate("signup")}
             className="hidden lg:inline text-xs font-label-md text-on-surface hover:text-primary transition-colors font-medium cursor-pointer"
           >
             Sell with Us
-          </button>
+          </NavLink>
 
           {/* Wishlist Button */}
           <button

@@ -1,7 +1,7 @@
 const Footer = ({ onNavigate }) => {
   return (
     <footer className="w-full bg-surface-container-lowest border-t border-outline-variant mt-auto transition-colors duration-200">
-      <div className="w-full max-w-[1440px] mx-auto px-gutter py-space-xl flex flex-col gap-space-lg">
+      <div className="w-full max-w-[1700px] mx-auto px-gutter py-space-xl flex flex-col gap-space-lg">
         {/* Top Grid Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-lg pb-space-lg border-b border-outline-variant/40">
           {/* Brand Summary Column (2 Cols on lg) */}

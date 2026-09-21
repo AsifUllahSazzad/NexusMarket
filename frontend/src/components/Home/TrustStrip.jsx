@@ -25,7 +25,7 @@ const TrustStrip = ({ currencySymbol = "৳", freeDeliveryThreshold = 1500 }) =>
   return (
     <section
       id="valueTrustStrip"
-      className="grid grid-cols-2 md:grid-cols-4 gap-4 py-5 px-6 bg-surface-container-lowest dark:bg-surface-container-low rounded-2xl border border-outline-variant/40 shadow-xs"
+      className="max-w-[1700px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 py-5 px-6 bg-surface-container-lowest dark:bg-surface-container-low rounded-2xl border border-outline-variant/40 shadow-xs"
     >
       {features.map((item, index) => (
         <div key={index} className="flex items-center gap-3">
