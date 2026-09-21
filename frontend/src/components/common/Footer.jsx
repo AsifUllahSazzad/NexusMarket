@@ -1,266 +1,211 @@
-import { useState } from "react";
-import {
-  Store,
-  ShieldCheck,
-  Truck,
-  RotateCcw,
-  HelpCircle,
-  CreditCard,
-  Send,
-  CheckCircle2,
-  Lock,
-  ArrowRight,
-} from "lucide-react";
-
-const Footer = ({
-  onOpenSellModal = () => {},
-  onCustomerServiceClick = () => {},
-}) => {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setSubscribed(false);
-        setEmail("");
-      }, 3500);
-    }
-  };
-
+const Footer = ({ onNavigate }) => {
   return (
-    <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 transition-colors">
-      {/* Newsletter & Value Proposition Strip */}
-      <div className="border-b border-slate-800/80">
-        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="max-w-md text-center md:text-left">
-            <h3 className="text-lg font-bold text-white tracking-tight">
-              Get 10% off your first artisan order
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Join 45,000+ shoppers receiving weekly curated drops and limited
-              discount drops.
-            </p>
-          </div>
-
-          <form
-            onSubmit={handleSubscribe}
-            className="w-full md:w-auto flex-1 max-w-md"
-          >
-            <div className="flex items-center bg-slate-800/90 rounded-full border border-slate-700 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 p-1 pl-4 transition-all">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your work or personal email..."
-                className="w-full bg-transparent border-none text-xs text-white placeholder:text-slate-500 outline-none"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 flex-shrink-0 cursor-pointer shadow-sm"
-              >
-                {subscribed ? (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
-                    <span>Subscribed!</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Subscribe</span>
-                    <Send className="w-3.5 h-3.5" />
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Main Multi-Column Links Section */}
-      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
-          {/* Brand Identity Column (Spans 2 cols on desktop) */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <a href="#" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-                <Store className="w-5 h-5" />
+    <footer className="w-full bg-surface-container-lowest border-t border-outline-variant mt-auto transition-colors duration-200">
+      <div className="w-full max-w-[1440px] mx-auto px-gutter py-space-xl flex flex-col gap-space-lg">
+        {/* Top Grid Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-space-lg pb-space-lg border-b border-outline-variant/40">
+          {/* Brand Summary Column (2 Cols on lg) */}
+          <div className="lg:col-span-2 flex flex-col gap-space-sm">
+            <button
+              type="button"
+              onClick={() => onNavigate("home")}
+              className="flex items-center gap-2 text-left w-fit"
+            >
+              <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary">
+                <span className="material-symbols-outlined text-xl">
+                  storefront
+                </span>
               </div>
-              <span className="text-xl font-extrabold tracking-tight text-white">
-                Nexus<span className="text-indigo-400">Market</span>
+              <span className="text-headline-sm font-headline-sm font-bold text-primary tracking-tight">
+                Nexus<span className="text-on-surface">Market</span>
               </span>
-            </a>
-
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Connecting certified regional distributors, independent artisans,
-              and global hardware manufacturers directly with discerning
-              consumers. Guaranteed authenticity on all items.
+            </button>
+            <p className="font-body-sm text-body-sm text-on-surface-variant max-w-sm leading-relaxed">
+              Bangladesh’s leading multi-vendor commerce infrastructure. Uniting
+              certified distributors, local makers, and global tech direct to
+              consumers with guaranteed authenticity.
             </p>
-
-            <div className="flex flex-col gap-2 mt-2">
-              <div className="flex items-center gap-2 text-xs text-slate-300">
-                <Lock className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="font-medium">Escrow Protected:</span>
-                <span className="text-slate-400">
-                  256-Bit SSL Encrypted Checkout
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-slate-300">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="font-medium">100% Genuine:</span>
-                <span className="text-slate-400">
-                  Direct-from-Maker Warranty
-                </span>
-              </div>
+            <div className="flex items-center gap-3 mt-2">
+              <span className="font-label-md text-label-md text-on-surface">
+                Regional Escrow:
+              </span>
+              <span className="inline-flex items-center gap-1 font-label-md text-label-md text-secondary">
+                <span className="material-symbols-outlined text-sm">
+                  security
+                </span>{" "}
+                256-Bit SSL Encrypted
+              </span>
             </div>
           </div>
 
-          {/* Customer Care */}
-          <div className="flex flex-col gap-3 text-xs">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+          {/* Links Column 1: Customer Care */}
+          <div className="flex flex-col gap-2">
+            <h4 className="font-title-lg text-title-lg text-on-surface mb-1">
               Customer Care
             </h4>
             <button
               type="button"
-              onClick={onCustomerServiceClick}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+              onClick={() => onNavigate("order-tracking")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              <Truck className="w-3.5 h-3.5 text-slate-500" />
-              <span>Track Active Waybill</span>
+              Buyer Protection
             </button>
             <button
               type="button"
-              onClick={onCustomerServiceClick}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+              onClick={() => onNavigate("order-tracking")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-              <span>Doorstep Returns &amp; Exchange</span>
+              Track Direct Shipment
             </button>
             <button
               type="button"
-              onClick={onCustomerServiceClick}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+              onClick={() => onNavigate("product-detail")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
-              <span>Buyer Protection Guarantee</span>
+              Doorstep Returns Policy
             </button>
             <button
               type="button"
-              onClick={onCustomerServiceClick}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
+              onClick={() => onNavigate("order-tracking")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
-              <span>Help Center &amp; Dispute Desk</span>
+              Help Center & Disputes
             </button>
           </div>
 
-          {/* Merchant Hub */}
-          <div className="flex flex-col gap-3 text-xs">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+          {/* Links Column 2: Merchant Hub */}
+          <div className="flex flex-col gap-2">
+            <h4 className="font-title-lg text-title-lg text-on-surface mb-1">
               Merchant Hub
             </h4>
             <button
               type="button"
-              onClick={onOpenSellModal}
-              className="text-left font-semibold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer flex items-center gap-1"
+              onClick={() => onNavigate("signup")}
+              className="text-left text-primary font-label-md hover:underline transition-colors duration-200"
             >
-              <span>Open a Seller Store</span>
-              <ArrowRight className="w-3 h-3" />
+              Sell with Us
             </button>
             <button
               type="button"
-              onClick={onOpenSellModal}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer"
+              onClick={() => onNavigate("signup")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              Merchant Fee Schedule
+              Merchant Solutions
             </button>
             <button
               type="button"
-              onClick={onOpenSellModal}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer"
+              onClick={() => onNavigate("home")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              Fulfillment by NexusDirect
+              Fulfillment by NovaDirect
             </button>
             <button
               type="button"
-              onClick={onOpenSellModal}
-              className="text-left text-slate-400 hover:text-white transition-colors cursor-pointer"
+              onClick={() => onNavigate("signup")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
             >
-              Artisan &amp; Maker Grants
+              Seller Code of Conduct
             </button>
           </div>
 
-          {/* Regional & Verified Payments */}
-          <div className="flex flex-col gap-3 text-xs">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Payment Methods
+          {/* Links Column 3: Trust & Regional */}
+          <div className="flex flex-col gap-2">
+            <h4 className="font-title-lg text-title-lg text-on-surface mb-1">
+              Trust & Regional
             </h4>
-            <p className="text-[11px] text-slate-400 leading-normal">
-              Instant settlement through certified local and international
-              payment gateways:
-            </p>
-
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <div className="bg-slate-800 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-center text-[11px] font-bold text-slate-200">
-                bKash
+            <button
+              type="button"
+              onClick={() => onNavigate("home")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
+            >
+              Trust & Safety
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("signin")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
+            >
+              Privacy Policy
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("checkout")}
+              className="text-left text-on-surface-variant font-body-sm hover:text-primary transition-colors duration-200"
+            >
+              Terms of Service
+            </button>
+            <div className="mt-2 pt-2 border-t border-outline-variant/50">
+              <span className="font-label-md text-label-md text-outline block mb-1">
+                Payment Partners:
+              </span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="bg-surface-container px-2 py-0.5 rounded font-bold text-on-surface">
+                  bKash
+                </span>
+                <span className="bg-surface-container px-2 py-0.5 rounded font-bold text-on-surface">
+                  Nagad
+                </span>
+                <span className="bg-surface-container px-2 py-0.5 rounded font-bold text-on-surface">
+                  Visa
+                </span>
+                <span className="bg-surface-container px-2 py-0.5 rounded font-bold text-on-surface">
+                  Mastercard
+                </span>
               </div>
-              <div className="bg-slate-800 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-center text-[11px] font-bold text-slate-200">
-                Nagad
-              </div>
-              <div className="bg-slate-800 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-center text-[11px] font-bold text-slate-200">
-                Visa Card
-              </div>
-              <div className="bg-slate-800 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-center text-[11px] font-bold text-slate-200">
-                Mastercard
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-1">
-              <CreditCard className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Cash on Delivery (Available in 64 Districts)</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Legal & Copyright Strip */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>
-            © {new Date().getFullYear()} NexusMarket Ltd. All rights reserved.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 text-xs">
+        {/* Footer Bottom Row */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant">
+          <p>© 2025 NexusMarket Inc. All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-space-md text-on-surface-variant font-body-sm">
             <button
               type="button"
-              onClick={onCustomerServiceClick}
-              className="hover:text-slate-300 transition-colors cursor-pointer"
+              onClick={() => onNavigate("home")}
+              className="hover:text-primary transition-colors"
+            >
+              Buyer Protection
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => onNavigate("signup")}
+              className="hover:text-primary transition-colors"
+            >
+              Merchant Solutions
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => onNavigate("signup")}
+              className="hover:text-primary transition-colors"
+            >
+              Sell with Us
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => onNavigate("home")}
+              className="hover:text-primary transition-colors"
+            >
+              Trust & Safety
+            </button>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => onNavigate("checkout")}
+              className="hover:text-primary transition-colors"
             >
               Privacy Policy
             </button>
             <span>•</span>
             <button
               type="button"
-              onClick={onCustomerServiceClick}
-              className="hover:text-slate-300 transition-colors cursor-pointer"
+              onClick={() => onNavigate("checkout")}
+              className="hover:text-primary transition-colors"
             >
               Terms of Service
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={onCustomerServiceClick}
-              className="hover:text-slate-300 transition-colors cursor-pointer"
-            >
-              Escrow Guidelines
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              onClick={onOpenSellModal}
-              className="hover:text-slate-300 transition-colors cursor-pointer"
-            >
-              Merchant Agreement
             </button>
           </div>
         </div>
