@@ -88,7 +88,7 @@ const Register = ({ onNavigate }) => {
           </button>
         </div>
 
-        { success ? (
+        {success ? (
           <div className="text-center py-8 space-y-3">
             <div className="w-14 h-14 rounded-full bg-secondary/15 text-secondary flex items-center justify-center mx-auto">
               <span className="material-symbols-outlined text-3xl">
