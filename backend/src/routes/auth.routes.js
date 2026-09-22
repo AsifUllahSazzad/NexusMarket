@@ -1,11 +1,18 @@
 import express from "express";
 const router = express.Router();
 
-router.post('/register/merchant', (req, res) => {
-    const body = req.body;
-    console.log(body)
+router.post("/register/merchant", (req, res) => {
+  const body = req.body;
+  console.log(body);
 
-    res.send()
-})
+  res.send();
+});
+
+router.post("/register/customer", (req, res) => {
+  const body = req.body;
+  console.log(body);
+
+  res.send();
+});
 
 export default router;

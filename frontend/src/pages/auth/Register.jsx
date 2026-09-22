@@ -120,10 +120,18 @@ const Register = ({ onNavigate }) => {
           tradeLicense,
           password,
         });
-        console.log(response);
+        console.log("Merchant: ", response);
       } else {
         // handle other role(s) here, e.g.:
-        // await axios.post("/api/auth/register/customer", { name, email, phone, password });
+        const response = await axios.post("/api/auth/register/customer", {
+          name,
+          email,
+          phone,
+          password,
+          deliveryCity,
+        });
+
+        console.log("Customer: ", response);
       }
 
       setSuccess(true);
