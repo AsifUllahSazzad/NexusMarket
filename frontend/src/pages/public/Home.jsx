@@ -18,6 +18,7 @@ const Home = () => {
 
       {/* Category */}
       {/* <CategoryGrid/> */}
+
     </div>
   );
 };

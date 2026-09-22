@@ -9,12 +9,94 @@ const Register = ({ onNavigate }) => {
   const [phone, setPhone] = useState("+880 ");
   const [password, setPassword] = useState("");
   const [category, setCategory] = useState("Electronics & Audio");
-  const [agreed, setAgreed] = useState(true);
+  const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // validation form:
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name
+    if (!name.trim()) {
+      newErrors.name = "Full name is required";
+    } else if (name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters";
+    } else if (!/^[A-Za-z\s]+$/.test(name.trim())) {
+      newErrors.name = "Name can only contain letters and spaces";
+    }
+
+    // Email
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    // Phone
+    if (!phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^\+880\s?1[3-9]\d{8}$/.test(phone.replace(/\s/g, ""))) {
+      newErrors.phone = "Enter a valid Bangladesh phone number";
+    }
+
+    // Password
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (!/[A-Z]/.test(password)) {
+      newErrors.password =
+        "Password must contain at least one uppercase letter";
+    } else if (!/[a-z]/.test(password)) {
+      newErrors.password =
+        "Password must contain at least one lowercase letter";
+    } else if (!/[0-9]/.test(password)) {
+      newErrors.password = "Password must contain at least one number";
+    }
+
+    // Merchant-specific validation
+    if (role === "merchant") {
+      // Studio/Brand Name
+      if (!storeName.trim()) {
+        newErrors.storeName = "Store name is required";
+      } else if (storeName.trim().length < 2) {
+        newErrors.storeName = "Store name must be at least 2 characters";
+      }
+
+      // Trade License/NID/BIN
+      if (!tradeLicense.trim()) {
+        newErrors.tradeLicense = "Trade license / NID / BIN is required";
+      }
+    }
+
+    // Buyer-specific validation
+    if (role === "buyer") {
+      if (!deliveryCity.trim()) {
+        newErrors.deliveryCity = "Delivery city is required";
+      }
+    }
+
+    // Terms
+    if (!agreed) {
+      newErrors.agreed = "You must agree to the terms";
+    }
+
+    return newErrors;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const validationError = validateForm();
+
+    setErrors(validationError);
+
+    if (Object.keys(validationError).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
@@ -118,7 +200,7 @@ const Register = ({ onNavigate }) => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Tanvir Ahmed"
+                  placeholder="e.g. Shariful Islam"
                   className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -169,7 +251,7 @@ const Register = ({ onNavigate }) => {
 
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  Mobile Phone (OTP Verification)
+                  Mobile Phone
                 </label>
                 <input
                   type="tel"
@@ -231,21 +313,39 @@ const Register = ({ onNavigate }) => {
               />
             </div>
 
-            <div className="pt-2">
-              <label className="flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  required
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded text-primary border-outline-variant accent-primary cursor-pointer"
-                />
-                <span className="text-[11px] text-outline leading-tight">
-                  I agree to NexusMarket's Merchant & Buyer Code of Conduct,
-                  Escrow Vault Guarantee, and 7-Day Doorstep Inspection Rules.
-                </span>
-              </label>
-            </div>
+            {role === "merchant" ? (
+              <div className="pt-2">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-primary border-outline-variant accent-primary cursor-pointer"
+                  />
+                  <span className="text-[11px] text-outline leading-tight">
+                    I agree to NexusMarket’s Merchant Code of Conduct, Escrow
+                    Vault Guarantee, and 7-Day Doorstep Inspection Rules.
+                  </span>
+                </label>
+              </div>
+            ) : (
+              <div className="pt-2">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-primary border-outline-variant accent-primary cursor-pointer"
+                  />
+                  <span className="text-[11px] text-outline leading-tight">
+                    I agree to NexusMarket’s Buyer Code of Conduct, Escrow Vault
+                    Guarantee, and 7-Day Doorstep Inspection Rules.
+                  </span>
+                </label>
+              </div>
+            )}
 
             <button
               type="submit"
