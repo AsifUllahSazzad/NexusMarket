@@ -11,14 +11,13 @@ const Home = () => {
       {/* <HeroSection/> */}
 
       {/* Trust Section */}
-      <TrustStrip/>
+      <TrustStrip />
 
       {/* Flash Drops & Limited Units */}
       {/* <FlashDeals/> */}
 
       {/* Category */}
       {/* <CategoryGrid/> */}
-
     </div>
   );
 };

@@ -37,10 +37,15 @@ const Register = ({ onNavigate }) => {
     // Phone
     if (!phone.trim()) {
       newErrors.phone = "Phone number is required";
-    } else if (!/^\+880\s?1[3-9]\d{8}$/.test(phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Enter a valid Bangladesh phone number";
-    }
+    } else {
+      const cleanPhone = phone.replace(/[\s-]/g, "");
 
+      const bdPhoneRegex = /^(?:01[3-9]\d{8}|\+8801[3-9]\d{8})$/;
+
+      if (!bdPhoneRegex.test(cleanPhone)) {
+        newErrors.phone = "Enter a valid Bangladesh phone number";
+      }
+    }
     // Password
     if (!password) {
       newErrors.password = "Password is required";
@@ -68,6 +73,9 @@ const Register = ({ onNavigate }) => {
       // Trade License/NID/BIN
       if (!tradeLicense.trim()) {
         newErrors.tradeLicense = "Trade license / NID / BIN is required";
+      } else if (!/^[A-Za-z0-9]{4,20}$/.test(tradeLicense.trim())) {
+        newErrors.tradeLicense =
+          "Enter a valid Trade license / NID / BIN (4–20 alphanumeric characters)";
       }
     }
 
@@ -89,9 +97,14 @@ const Register = ({ onNavigate }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    setErrors();
+
     const validationError = validateForm();
 
     setErrors(validationError);
+
+    console.log(errors);
+    console.log(phone);
 
     if (Object.keys(validationError).length > 0) {
       return;
@@ -170,6 +183,7 @@ const Register = ({ onNavigate }) => {
           </button>
         </div>
 
+        {/* resolve must */}
         {success ? (
           <div className="text-center py-8 space-y-3">
             <div className="w-14 h-14 rounded-full bg-secondary/15 text-secondary flex items-center justify-center mx-auto">
@@ -203,6 +217,11 @@ const Register = ({ onNavigate }) => {
                   placeholder="e.g. Shariful Islam"
                   className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+                {errors.name && (
+                  <p className="mt-1 pl-1 text-[11px] text-red-500">
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               {role === "merchant" ? (
@@ -219,6 +238,12 @@ const Register = ({ onNavigate }) => {
                     placeholder="e.g. Apex Acoustics"
                     className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                   />
+
+                  {errors.storeName && (
+                    <p className="mt-1 pl-1 text-[11px] text-red-500">
+                      {errors.storeName}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -232,6 +257,12 @@ const Register = ({ onNavigate }) => {
                     onChange={(e) => setDeliveryCity(e.target.value)}
                     className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                   />
+
+                  {errors.deliveryCity && (
+                    <p className="mt-1 pl-1 text-[11px] text-red-500">
+                      {errors.deliveryCity}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -247,6 +278,12 @@ const Register = ({ onNavigate }) => {
                   placeholder="tanvir@example.com"
                   className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+
+                {errors.email && (
+                  <p className="mt-1 pl-1 text-[11px] text-red-500">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -254,13 +291,18 @@ const Register = ({ onNavigate }) => {
                   Mobile Phone
                 </label>
                 <input
-                  type="tel"
+                  type="text"
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+880 1712 000000"
                   className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+                {errors.phone && (
+                  <p className="mt-1 pl-1 text-[11px] text-red-500">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -295,6 +337,12 @@ const Register = ({ onNavigate }) => {
                     placeholder="e.g. TRAD/DNCC/01928"
                     className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 focus:ring-primary"
                   />
+
+                  {errors.tradeLicense && (
+                    <p className="mt-1 pl-1 text-[11px] text-red-500">
+                      {errors.tradeLicense}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -311,6 +359,12 @@ const Register = ({ onNavigate }) => {
                 placeholder="At least 8 characters with numbers"
                 className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary font-mono"
               />
+
+              {errors.password && (
+                <p className="mt-1 pl-1 text-[11px] text-red-500">
+                  {errors.password}
+                </p>
+              )}
             </div>
 
             {role === "merchant" ? (
