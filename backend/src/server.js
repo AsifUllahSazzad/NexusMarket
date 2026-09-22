@@ -14,6 +14,9 @@ app.get("/", (req, res) => {
   });
 });
 
+import authRoute from './routes/auth.routes.js';
+app.use("/api/auth", authRoute);
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
