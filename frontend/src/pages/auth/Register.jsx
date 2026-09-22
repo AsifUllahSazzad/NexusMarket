@@ -1,14 +1,15 @@
+import axios from "axios";
 import { useState } from "react";
 const Register = ({ onNavigate }) => {
   const [role, setRole] = useState("merchant");
   const [name, setName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [deliveryCity, setDeliveryCity] = useState("Dhaka");
-  const [tradeLicense, setTradeLicense] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+880 ");
-  const [password, setPassword] = useState("");
   const [category, setCategory] = useState("Electronics & Audio");
+  const [tradeLicense, setTradeLicense] = useState("");
+  const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -94,30 +95,51 @@ const Register = ({ onNavigate }) => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setErrors();
+    setErrors({});
 
     const validationError = validateForm();
-
     setErrors(validationError);
-
-    console.log(errors);
-    console.log(phone);
 
     if (Object.keys(validationError).length > 0) {
       return;
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      if (role === "merchant") {
+        const response = await axios.post("/api/auth/register/merchant", {
+          name,
+          storeName,
+          email,
+          phone,
+          category,
+          tradeLicense,
+          password,
+        });
+        console.log(response);
+      } else {
+        // handle other role(s) here, e.g.:
+        // await axios.post("/api/auth/register/customer", { name, email, phone, password });
+      }
+
       setSuccess(true);
       setTimeout(() => {
         onNavigate("home");
       }, 1500);
-    }, 1e3);
+    } catch (err) {
+      console.error(err);
+      setErrors({
+        submit:
+          err.response?.data?.message ||
+          "Registration failed. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
