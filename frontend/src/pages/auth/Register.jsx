@@ -122,7 +122,6 @@ const Register = ({ onNavigate }) => {
         });
         console.log("Merchant: ", response);
       } else {
-        // handle other role(s) here, e.g.:
         const response = await axios.post("/api/auth/register/customer", {
           name,
           email,
@@ -139,7 +138,7 @@ const Register = ({ onNavigate }) => {
         onNavigate("home");
       }, 1500);
     } catch (err) {
-      console.error(err);
+      console.error(err.response.data.error);
       setErrors({
         submit:
           err.response?.data?.message ||
