@@ -1,18 +1,6 @@
 import { body } from "express-validator";
 import { validationResult } from "express-validator";
 
-/*
-{
-  name: 'fasdfasdf',
-  storeName: 'fasdfasdf',
-  email: 'fsdafsdaf@g.c',
-  phone: '+880 1620913413',
-  category: 'Electronics & Audio',
-  tradeLicense: 'fasdfasdfq23w4234sdf',
-  password: 'adfsfadsfFdsfasdf2'
-}
-*/
-
 // Merchant Validator
 export const merchantRegisterValidator = () => {
   return [
