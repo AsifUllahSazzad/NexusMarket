@@ -1,4 +1,4 @@
-import { findUserByEmailOrPhone } from "../models/userModel.js";
+import { findUserByEmailOrPhone, insertUserData } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 
 /*
@@ -17,7 +17,7 @@ export const postMerchant = async (req, res) => {
   try {
     const merchantRegisterData = await req.body;
 
-    const { email, phone, password } = merchantRegisterData;
+    const { name, email, phone, password } = merchantRegisterData;
 
     console.log("Merchant Success: ", merchantRegisterData);
 
@@ -34,11 +34,21 @@ export const postMerchant = async (req, res) => {
     // password hashing+salt:
     const hashedPassword = await bcrypt.hash(password, 15);
 
+    console.log("Hash: ", hashedPassword)
+
     // insert user:
+    const result = await insertUserData(
+      name,
+      email,
+      phone,
+      hashedPassword,
+      "merchant",
+    );
 
     return res.status(201).json({
       success: true,
-      message: "No duplicate email or phone found",
+      message: "Merchant registered successfully",
+      result,
     });
   } catch (error) {
     console.error(error);

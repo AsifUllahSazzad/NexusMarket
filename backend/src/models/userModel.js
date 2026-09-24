@@ -10,3 +10,21 @@ export const findUserByEmailOrPhone = async (email, phone) => {
 
   return result.rows[0];
 };
+
+// insert user data
+export const insertUserData = async (
+  full_name,
+  email,
+  phone,
+  password_hash,
+  role,
+) => {
+  const query = `INSERT INTO users(full_name, email, phone, password_hash, role, is_active, created_at, updated_at) VALUES($1, $2, $3, $4, $5, DEFAULT, DEFAULT, DEFAULT)
+  RETURNING user_id, full_name, email, phone, role, is_active`;
+
+  const values = [full_name, email, phone, password_hash, role];
+
+  const result = await pool.query(query, values);
+
+  return result.rows[0];
+};
