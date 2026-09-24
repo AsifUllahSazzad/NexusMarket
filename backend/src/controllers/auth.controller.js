@@ -1,5 +1,5 @@
 import { findUserByEmailOrPhone } from "../models/userModel.js";
-
+import bcrypt from "bcrypt";
 
 /*
 Merchant Success:  {
@@ -13,17 +13,16 @@ Merchant Success:  {
 }
 */
 
-
 export const postMerchant = async (req, res) => {
   try {
     const merchantRegisterData = await req.body;
 
-    const { email, phone } = merchantRegisterData;
+    const { email, phone, password } = merchantRegisterData;
 
     console.log("Merchant Success: ", merchantRegisterData);
 
     // check user exist
-    const existingUser = await findUserByEmailOrPhoneailOrPhone(email, phone);
+    const existingUser = await findUserByEmailOrPhone(email, phone);
 
     if (existingUser) {
       return res.status(409).json({
@@ -32,8 +31,10 @@ export const postMerchant = async (req, res) => {
       });
     }
 
+    // password hashing+salt:
+    const hashedPassword = await bcrypt.hash(password, 15);
 
-    // password hashing:
+    // insert user:
 
     return res.status(201).json({
       success: true,
