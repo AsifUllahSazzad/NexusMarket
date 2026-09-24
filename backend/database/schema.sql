@@ -79,3 +79,8 @@ CREATE TABLE buyer_profiles (
         REFERENCES users(user_id)
         ON DELETE CASCADE
 );
+
+
+SELECT * FROM users;
+SELECT * FROM merchant_profiles;
+SELECT * FROM buyer_profiles;
