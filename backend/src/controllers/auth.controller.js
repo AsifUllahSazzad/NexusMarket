@@ -34,9 +34,9 @@ export const postMerchant = async (req, res) => {
     // password hashing+salt:
     const hashedPassword = await bcrypt.hash(password, 15);
 
-    console.log("Hash: ", hashedPassword)
+    console.log("Hash: ", hashedPassword);
 
-    // insert user:
+    // insert user data:
     const result = await insertUserData(
       name,
       email,
@@ -64,7 +64,7 @@ export const postCustomer = async (req, res) => {
   try {
     const customerRegisterData = await req.body;
 
-    const { email, phone } = customerRegisterData;
+    const { name, email, phone, password } = customerRegisterData;
 
     console.log("Customer Success: ", customerRegisterData);
 
@@ -78,9 +78,24 @@ export const postCustomer = async (req, res) => {
       });
     }
 
+    // password hashing+salt:
+    const hashedPassword = await bcrypt.hash(password, 15);
+
+    console.log("Hash: ", hashedPassword);
+
+    // insert user data:
+    const result = await insertUserData(
+      name,
+      email,
+      phone,
+      hashedPassword,
+      "buyer",
+    );
+
     return res.status(201).json({
       success: true,
-      message: "No duplicate email or phone found",
+      message: "Customer registered successfully",
+      result,
     });
   } catch (error) {
     console.error(error);
