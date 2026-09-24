@@ -1,4 +1,4 @@
-import pool from "../config/db";
+import pool from "../config/db.js";
 
 // duplicate email or phone number detect
 export const findUserByEmailOrPhone = async (email, phone) => {

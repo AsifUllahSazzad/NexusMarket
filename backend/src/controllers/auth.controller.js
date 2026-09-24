@@ -1,5 +1,6 @@
 import { findUserByEmailOrPhone } from "../models/userModel.js";
 
+
 /*
 Merchant Success:  {
   name: 'fasdfasdf',
@@ -12,6 +13,7 @@ Merchant Success:  {
 }
 */
 
+
 export const postMerchant = async (req, res) => {
   try {
     const merchantRegisterData = await req.body;
@@ -21,7 +23,7 @@ export const postMerchant = async (req, res) => {
     console.log("Merchant Success: ", merchantRegisterData);
 
     // check user exist
-    const existingUser = await findUserByEmailOrPhone(email, phone);
+    const existingUser = await findUserByEmailOrPhoneailOrPhone(email, phone);
 
     if (existingUser) {
       return res.status(409).json({
@@ -29,6 +31,9 @@ export const postMerchant = async (req, res) => {
         message: "Email or phone number already exists",
       });
     }
+
+
+    // password hashing:
 
     return res.status(201).json({
       success: true,
