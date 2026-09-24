@@ -10,6 +10,14 @@ Merchant Success:  {
   category: 'Electronics & Audio',
   tradeLicense: 'asdfdas234fdsdsfsd',
   password: 'fasdfasdfF32'
+
+  Customer Success:  {
+  name: 'Shariful Islam',
+  email: 'asifkhan@gmail.com',
+  phone: '+8801620913413',
+  password: 'asdfasdfF3',
+  deliveryCity: 'Dhaka'
+}
 }
 */
 
@@ -25,9 +33,19 @@ export const postMerchant = async (req, res) => {
     const existingUser = await findUserByEmailOrPhone(email, phone);
 
     if (existingUser) {
+      const errors = {};
+
+      if (existingUser.email === email) {
+        errors.email = "Email is already registered";
+      }
+
+      if (existingUser.phone === phone) {
+        errors.phone = "Phone number is already registered";
+      }
+
       return res.status(409).json({
         success: false,
-        message: "Email or phone number already exists",
+        errors,
       });
     }
 
@@ -72,9 +90,19 @@ export const postCustomer = async (req, res) => {
     const existingUser = await findUserByEmailOrPhone(email, phone);
 
     if (existingUser) {
+      const errors = {};
+
+      if (existingUser.email === email) {
+        errors.email = "Email is already registered";
+      }
+
+      if (existingUser.phone === phone) {
+        errors.phone = "Phone number is already registered";
+      }
+
       return res.status(409).json({
         success: false,
-        message: "Email or phone number already exists",
+        errors,
       });
     }
 

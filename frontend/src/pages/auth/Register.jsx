@@ -138,7 +138,20 @@ const Register = ({ onNavigate }) => {
         onNavigate("home");
       }, 1500);
     } catch (err) {
-      console.error(err.response.data.error);
+      // console.error(err.response.data.error);
+
+       if (err.response?.status === 409) {
+            if(err.response?.data?.errors?.email && err.response?.data?.errors?.phone){
+             return setErrors(err.response?.data?.errors)
+            }
+            else if(err.response?.data?.errors?.email){
+              return setErrors(err.response?.data?.errors)
+            }
+            else if(err.response?.data?.errors?.phone){
+              return setErrors(err.response?.data?.errors)
+            }
+          }
+
       setErrors({
         submit:
           err.response?.data?.message ||
