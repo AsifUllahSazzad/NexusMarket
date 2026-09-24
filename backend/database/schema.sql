@@ -21,8 +21,9 @@ users
   └── wishlist
 
 -- Users table for authentication data check
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE users (
-    user_id BIGSERIAL PRIMARY KEY,
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     full_name TEXT NOT NULL,
 
@@ -46,19 +47,17 @@ CREATE TABLE users (
 CREATE TABLE merchant_profiles (
     merchant_id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 10000 INCREMENT BY 1) PRIMARY KEY,
 
-    user_id BIGINT NOT NULL UNIQUE,
+    user_id UUID NOT NULL UNIQUE,
 
     studio_or_brand_name TEXT NOT NULL,
 
     trade_license TEXT NOT NULL UNIQUE,
 
-    delivery_city TEXT,
-
-    category TEXT,
-
-    agreed_to_code BOOLEAN NOT NULL DEFAULT FALSE,
+    category TEXT NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_merchant_user
         FOREIGN KEY (user_id)
@@ -68,11 +67,13 @@ CREATE TABLE merchant_profiles (
 
 -- Buyer profile
 CREATE TABLE buyer_profiles (
-    buyer_id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1) PRIMARY KEY,
+    buyer_id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 20000 INCREMENT BY 1) PRIMARY KEY,
 
-    user_id BIGINT NOT NULL UNIQUE,
+    user_id UUID NOT NULL UNIQUE,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_buyer_user
         FOREIGN KEY (user_id)
@@ -84,3 +85,13 @@ CREATE TABLE buyer_profiles (
 SELECT * FROM users;
 SELECT * FROM merchant_profiles;
 SELECT * FROM buyer_profiles;
+
+DELETE FROM users WHERE user_id = 1;
+
+DROP TABLE users CASCADE;
+
+
+-- INSERT INTO merchant_profiles(user_id, studio_or_brand_name, trade_license, category, created_at, updated_at) VALUES();
+
+
+-- SELECT NOW();

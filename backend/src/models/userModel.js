@@ -11,8 +11,9 @@ export const findUserByEmailOrPhone = async (email, phone) => {
   return result.rows[0];
 };
 
-// insert user data
+// insert authentication data
 export const insertUserData = async (
+  client,
   full_name,
   email,
   phone,
@@ -24,7 +25,7 @@ export const insertUserData = async (
 
   const values = [full_name, email, phone, password_hash, role];
 
-  const result = await pool.query(query, values);
+  const result = await client.query(query, values);
 
   return result.rows[0];
 };
