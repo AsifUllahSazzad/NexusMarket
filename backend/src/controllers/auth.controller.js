@@ -4,36 +4,6 @@ import { insertMerchantProfile } from "../models/merchantModel.js";
 import { findUserByEmailOrPhone, insertUserData } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 
-/*
-Merchant Success:  {
-  name: 'fasdfasdf',
-  storeName: 'fasdfsadf',
-  email: 'fsadfasdf@g.c',
-  phone: '+8801620913413',
-  category: 'Electronics & Audio',
-  tradeLicense: 'asdfdas234fdsdsfsd',
-  password: 'fasdfasdfF32'
-}
-
-  Customer Success:  {
-  name: 'Shariful Islam',
-  email: 'asifkhan@gmail.com',
-  phone: '+8801620913413',
-  password: 'asdfasdfF3',
-  deliveryCity: 'Dhaka'
-}
-
-
-authentication -> {
-  user_id: '3',
-  full_name: 'Shariful Islam',
-  email: 'shariful@gmail.com',
-  phone: '+8801783457532',
-  role: 'buyer',
-  is_active: true
-}
-*/
-
 export const postMerchant = async (req, res) => {
   const client = await pool.connect();
   try {
