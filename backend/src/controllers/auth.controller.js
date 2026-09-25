@@ -16,7 +16,11 @@ export const postMerchant = async (req, res) => {
     console.log("Merchant Success: ", merchantRegisterData);
 
     // check user exist
-    const existingUser = await findUserByEmailOrPhone(email, phone);
+    const existingUser = await findUserByEmailOrPhone(
+      email,
+      phone,
+      tradeLicense,
+    );
 
     if (existingUser) {
       const errors = {};
@@ -27,6 +31,10 @@ export const postMerchant = async (req, res) => {
 
       if (existingUser.phone === phone) {
         errors.phone = "Phone number is already registered";
+      }
+
+      if (existingUser.trade_license === tradeLicense) {
+        errors.tradeLicense = "Trade license is already registered";
       }
 
       return res.status(409).json({
@@ -157,8 +165,11 @@ export const postCustomer = async (req, res) => {
   }
 };
 
-
 // Login
 export const postLogin = async (req, res) => {
-    
-}
+  const loginData = req.body;
+
+  console.log(loginData);
+
+  res.send();
+};

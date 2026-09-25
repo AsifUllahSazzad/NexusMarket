@@ -122,6 +122,13 @@ const Register = ({ onNavigate }) => {
           password,
         });
         console.log("Merchant: ", response);
+
+        if (response.data.success) {
+          setSuccess(true);
+          setTimeout(() => {
+            onNavigate("home");
+          }, 1500);
+        }
       } else {
         const response = await axios.post("/api/auth/register/customer", {
           name,
@@ -132,12 +139,14 @@ const Register = ({ onNavigate }) => {
         });
 
         console.log("Customer: ", response);
-      }
 
-      setSuccess(true);
-      setTimeout(() => {
-        onNavigate("home");
-      }, 1500);
+        if (response.data.success) {
+          setSuccess(true);
+          setTimeout(() => {
+            onNavigate("home");
+          }, 1500);
+        }
+      }
     } catch (err) {
       // console.error(err.response.data.error);
 
@@ -467,7 +476,7 @@ const Register = ({ onNavigate }) => {
         <div className="mt-6 text-center pt-4 border-t border-outline-variant/30 text-xs text-outline">
           Already registered?{" "}
           <NavLink
-          to={'/login'}
+            to={"/login"}
             onClick={() => onNavigate("signin")}
             className="text-primary font-bold hover:underline cursor-pointer"
           >
