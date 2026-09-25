@@ -4,6 +4,7 @@ import { insertMerchantProfile } from "../models/merchantModel.js";
 import { findUserByEmailOrPhone, insertUserData } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 
+// Register
 export const postMerchant = async (req, res) => {
   const client = await pool.connect();
   try {
@@ -155,3 +156,9 @@ export const postCustomer = async (req, res) => {
     client.release();
   }
 };
+
+
+// Login
+export const postLogin = async (req, res) => {
+    
+}

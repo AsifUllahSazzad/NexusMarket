@@ -1,4 +1,7 @@
+import axios from "axios";
 import { useState } from "react";
+import { NavLink } from "react-router";
+
 const Login = ({ onNavigate }) => {
   const [accountType, setAccountType] = useState("buyer");
   const [email, setEmail] = useState("tanvir@nexus.market");
@@ -9,17 +12,47 @@ const Login = ({ onNavigate }) => {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signedInSuccess, setSignedInSuccess] = useState(false);
-  const handleSubmit = (e) => {
+
+  /*
+login -> frontend validation
+*/
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log(rememberMe);
+
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      const response = await axios.post("/api/auth/login", {
+        email,
+        password,
+      });
+
+      console.log("Login response:", response.data);
+
+      // Login successful
+      if (response.data.success) {
+        setSignedInSuccess(true);
+
+        setTimeout(() => {
+          onNavigate("home");
+        }, 1000);
+      }
+    } catch (error) {
+      console.log("Login error:", error);
+
+      // Backend validation / login error
+      if (error.response) {
+        console.log("Status:", error.response.status);
+        console.log("Data:", error.response.data);
+      }
+    } finally {
       setIsSubmitting(false);
-      setSignedInSuccess(true);
-      setTimeout(() => {
-        onNavigate("home");
-      }, 1e3);
-    }, 800);
+    }
   };
+
   return (
     <div className="w-full flex-1 flex items-center justify-center py-12 px-gutter">
       <div className="w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-3xl p-8 shadow-lg relative overflow-hidden">
@@ -76,9 +109,7 @@ const Login = ({ onNavigate }) => {
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block font-medium text-on-surface mb-1">
-                {accountType === "buyer"
-                  ? "Email or Mobile Phone"
-                  : "Merchant Business Email"}
+                {accountType === "buyer" ? "Email" : "Merchant Business Email"}
               </label>
               <div className="relative">
                 <input
@@ -146,12 +177,6 @@ const Login = ({ onNavigate }) => {
                   Keep me signed in
                 </span>
               </label>
-              <span className="text-secondary text-[11px] font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">
-                  shield
-                </span>{" "}
-                256-Bit SSL
-              </span>
             </div>
 
             <button
@@ -217,17 +242,16 @@ const Login = ({ onNavigate }) => {
         {/* Switch to Sign Up */}
         <div className="mt-6 text-center pt-4 border-t border-outline-variant/30 text-xs text-outline">
           New to NexusMarket?{" "}
-          <button
-            type="button"
+          <NavLink
+            to={"/register"}
             onClick={() => onNavigate("signup")}
             className="text-primary font-bold hover:underline cursor-pointer"
           >
             Create an Account / Sell with Us
-          </button>
+          </NavLink>
         </div>
       </div>
     </div>
   );
 };
-
 export default Login;

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { NavLink } from "react-router";
 const Register = ({ onNavigate }) => {
   const [role, setRole] = useState("merchant");
   const [name, setName] = useState("");
@@ -465,13 +466,13 @@ const Register = ({ onNavigate }) => {
 
         <div className="mt-6 text-center pt-4 border-t border-outline-variant/30 text-xs text-outline">
           Already registered?{" "}
-          <button
-            type="button"
+          <NavLink
+          to={'/login'}
             onClick={() => onNavigate("signin")}
             className="text-primary font-bold hover:underline cursor-pointer"
           >
             Sign In to Existing Account
-          </button>
+          </NavLink>
         </div>
       </div>
     </div>

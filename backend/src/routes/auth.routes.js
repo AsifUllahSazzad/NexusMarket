@@ -21,4 +21,7 @@ router.post(
   postCustomer,
 );
 
+router.post("/login");
+
+
 export default router;
