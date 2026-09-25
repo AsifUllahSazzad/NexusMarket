@@ -12,46 +12,75 @@ const Login = ({ onNavigate }) => {
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signedInSuccess, setSignedInSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   /*
 login -> frontend validation
 */
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    console.log(rememberMe);
+  setErrors({});
+  setIsSubmitting(true);
 
-    setIsSubmitting(true);
+  console.log("Remember me:", rememberMe);
 
-    try {
-      const response = await axios.post("/api/auth/login", {
-        email,
-        password,
-      });
+  try {
+    const response = await axios.post("/api/auth/login", {
+      email,
+      password,
+    });
 
-      console.log("Login response:", response.data);
+    console.log("Login response:", response.data);
 
-      // Login successful
-      if (response.data.success) {
-        setSignedInSuccess(true);
+    if (response.data.success) {
+      setSignedInSuccess(true);
 
-        setTimeout(() => {
-          onNavigate("home");
-        }, 1000);
-      }
-    } catch (error) {
-      console.log("Login error:", error);
-
-      // Backend validation / login error
-      if (error.response) {
-        console.log("Status:", error.response.status);
-        console.log("Data:", error.response.data);
-      }
-    } finally {
-      setIsSubmitting(false);
+      setTimeout(() => {
+        onNavigate("home");
+      }, 1000);
     }
-  };
+
+  } catch (error) {
+    const status = error.response?.status;
+    const backendErrors = error.response?.data?.errors;
+
+    console.log("Status:", status);
+    console.log("Errors:", backendErrors);
+
+    // Send backend errors to React state
+    setErrors(backendErrors || {});
+
+    // 404 → account not found
+    if (status === 404) {
+      console.log("User not found");
+    }
+
+    // 401 → wrong password
+    if (status === 401) {
+      console.log("Incorrect password");
+    }
+
+    // 422 → validation error
+    if (status === 422) {
+      console.log("Validation error");
+    }
+
+    // 500 → server error
+    if (status >= 500) {
+      console.log("Server error");
+    }
+
+    // No response → server/network problem
+    if (!error.response) {
+      console.log("Cannot connect to server");
+    }
+
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="w-full flex-1 flex items-center justify-center py-12 px-gutter">
@@ -124,6 +153,11 @@ login -> frontend validation
                   alternate_email
                 </span>
               </div>
+              {errors.email && (
+                <p className="mt-1 pl-1 text-[11px] text-red-500 text-center">
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             <div>
@@ -163,6 +197,12 @@ login -> frontend validation
                   </span>
                 </button>
               </div>
+
+              {errors.password && (
+                <p className="mt-1 pl-1 text-[11px] text-center text-red-500">
+                  {errors.password}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between py-1">

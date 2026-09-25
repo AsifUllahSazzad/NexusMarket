@@ -29,3 +29,14 @@ export const insertUserData = async (
 
   return result.rows[0];
 };
+
+// find login user
+export const findLoginUser = async (email) => {
+  const query = `SELECT * FROM users WHERE email = $1`;
+
+  const values = [email];
+
+  const result = await pool.query(query, values);
+
+  return result.rows[0];
+};

@@ -1,7 +1,11 @@
 import pool from "../config/db.js";
 import { insertCustomerProfile } from "../models/customerModel.js";
 import { insertMerchantProfile } from "../models/merchantModel.js";
-import { findUserByEmailOrPhone, insertUserData } from "../models/userModel.js";
+import {
+  findLoginUser,
+  findUserByEmailOrPhone,
+  insertUserData,
+} from "../models/userModel.js";
 import bcrypt from "bcrypt";
 
 // Register
@@ -167,9 +171,51 @@ export const postCustomer = async (req, res) => {
 
 // Login
 export const postLogin = async (req, res) => {
-  const loginData = req.body;
+  const { email, password } = req.body;
 
-  console.log(loginData);
+  try {
+    const result = await findLoginUser(email);
 
-  res.send();
+    const errors = {};
+
+    // user not found -> email
+    if (!result) {
+      errors.email = "Account not found";
+      return res.status(404).json({
+        success: false,
+        errors,
+      });
+    }
+
+    // password match check
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      result.password_hash,
+    );
+
+    if (!isPasswordCorrect) {
+      errors.password = "Incorrect password";
+
+      return res.status(401).json({
+        success: false,
+        errors,
+      });
+    }
+
+    /*
+    {
+  user_id: '85cd268c-1ab9-4862-a38e-297318966323',
+  full_name: 'Asif Khan',
+  email: 'asifkhan@gmail.com',
+  phone: '+8801783457453',
+  password_hash: '$2b$15$whQEK4lQS1g7lbBXVzA5c.Qzynic2T9NCpFsCiWVvDLdw/vUIfxWK',
+  role: 'buyer',
+  is_active: true,
+  created_at: 2026-09-24T20:33:52.271Z,
+  updated_at: 2026-09-24T20:33:52.271Z
+}
+    */
+  } catch (error) {
+    console.log(error);
+  }
 };

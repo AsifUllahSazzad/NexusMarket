@@ -1,5 +1,9 @@
 import express from "express";
-import { postCustomer, postMerchant } from "../controllers/auth.controller.js";
+import {
+  postCustomer,
+  postLogin,
+  postMerchant,
+} from "../controllers/auth.controller.js";
 import {
   customerRegisterValidator,
   merchantRegisterValidator,
@@ -21,7 +25,6 @@ router.post(
   postCustomer,
 );
 
-router.post("/login");
-
+router.post("/login", postLogin);
 
 export default router;
