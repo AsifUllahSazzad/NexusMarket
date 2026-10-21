@@ -81,12 +81,20 @@ CREATE TABLE buyer_profiles (
         ON DELETE CASCADE
 );
 
+-- Add column merchant approval works
+ALTER TABLE merchant_profiles ADD COLUMN approval_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (approval_status IN (
+  'pending',
+            'approved',
+            'rejected',
+            'suspended'
+));
+
 
 SELECT * FROM users;
 SELECT * FROM merchant_profiles;
 SELECT * FROM buyer_profiles;
 
-DELETE FROM users WHERE user_id = 1;
+DELETE FROM USERS WHERE FULL_NAME = 'asdfdasf';
 
 DROP TABLE users CASCADE;
 
