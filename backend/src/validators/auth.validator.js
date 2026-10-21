@@ -9,7 +9,7 @@ export const merchantRegisterValidator = () => {
       .notEmpty()
       .withMessage("Full name is required")
       .isLength({ min: 2 })
-      .withMessage("Name must be at least 2 characters.")
+      .withMessage("Name must be at least 4 characters.")
       .matches(/^[A-Za-z\s]+$/)
       .withMessage("Name can only contain letters and spaces"),
 
