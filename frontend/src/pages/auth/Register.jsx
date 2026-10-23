@@ -102,12 +102,13 @@ const Register = ({ onNavigate }) => {
 
     setErrors({});
 
-    const validationError = validateForm();
-    setErrors(validationError);
+    // const validationError = validateForm();
+    // console.log(validationError)
+    // setErrors(validationError);
 
-    if (Object.keys(validationError).length > 0) {
-      return;
-    }
+    // if (Object.keys(validationError).length > 0) {
+    //   return;
+    // }
 
     setIsSubmitting(true);
 
@@ -150,10 +151,21 @@ const Register = ({ onNavigate }) => {
         }
       }
     } catch (err) {
-      let newError = {};
+      const errorData = err.response?.data?.errors;
+      console.log(err.response?.status);
+
+      let newErrors = {};
+      if (err.response?.status === 400) {
+        errorData.forEach((er) => {
+          newErrors[er.field] = er.message;
+        });
+
+        return setErrors(newErrors);
+      }
+
       if (err.response?.status === 409) {
-        newError.email = err.response?.data?.message;
-        return setErrors(newError);
+        newErrors.email = err.response?.data?.message;
+        return setErrors(newErrors);
       }
 
       setErrors({
