@@ -1,30 +1,16 @@
 import express from "express";
-import {
-  postCustomer,
-  postLogin,
-  postMerchant,
-} from "../controllers/auth.controller.js";
-import {
-  customerRegisterValidator,
-  merchantRegisterValidator,
-  validationCheck,
-} from "../validators/auth.validator.js";
+import { registerBuyer } from "../controllers/auth.controller.js";
+
+
 const router = express.Router();
 
-router.post(
-  "/register/merchant",
-  merchantRegisterValidator(),
-  validationCheck,
-  postMerchant,
-);
+// router.post("/register/customer");
 
-router.post(
-  "/register/customer",
-  customerRegisterValidator(),
-  validationCheck,
-  postCustomer,
-);
+router.post("/register/customer", registerBuyer)
 
-router.post("/login", postLogin);
+// router.post("/register/merchant", postMerchant);
+
+
+// router.post("/login", postLogin);
 
 export default router;
