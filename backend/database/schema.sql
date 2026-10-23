@@ -1,105 +1,83 @@
-users
-  │
-  ├── buyer_profiles
-  │
-  └── merchant_profiles
-          │
-          └── products
-                 │
-                 └── order_items
-orders ───────────┘
-  │
-  └── payments
-
-products
-  ├── product_images
-  └── categories
-
-users
-  ├── addresses
-  ├── cart
-  └── wishlist
-
--- Users table for authentication data check
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE TABLE users (
-    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    full_name TEXT NOT NULL,
-
-    email TEXT NOT NULL UNIQUE,
-
-    phone VARCHAR(20) NOT NULL UNIQUE,
-
+-- create a user table
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    mobile_phone VARCHAR(30) NOT NULL,
     password_hash TEXT NOT NULL,
-
-    role VARCHAR(20) NOT NULL
-        CHECK (role IN ('buyer', 'merchant', 'admin')),
-
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    role VARCHAR(20) NOT NULL DEFAULT 'buyer'
+        CHECK (role IN ('buyer', 'admin')),
+    agreement_accepted BOOLEAN NOT NULL
+        CHECK (agreement_accepted = TRUE),
+    agreement_accepted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Merchant profile
-CREATE TABLE merchant_profiles (
-    merchant_id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 10000 INCREMENT BY 1) PRIMARY KEY,
-
-    user_id UUID NOT NULL UNIQUE,
-
-    studio_or_brand_name TEXT NOT NULL,
-
-    trade_license TEXT NOT NULL UNIQUE,
-
-    category TEXT NOT NULL,
-
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_merchant_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(user_id)
-        ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS buyer_profiles (
+    user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    delivery_city VARCHAR(100) NOT NULL
 );
 
--- Buyer profile
-CREATE TABLE buyer_profiles (
-    buyer_id BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 20000 INCREMENT BY 1) PRIMARY KEY,
-
-    user_id UUID NOT NULL UNIQUE,
-
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_buyer_user
-        FOREIGN KEY (user_id)
-        REFERENCES users(user_id)
-        ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS merchant_applications (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    brand_name VARCHAR(150) NOT NULL,
+    primary_product_category VARCHAR(100) NOT NULL,
+    verification_type VARCHAR(20) NOT NULL
+        CHECK (verification_type IN ('trade_license', 'nid')),
+    verification_code TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+    reviewed_by BIGINT REFERENCES users(id),
+    reviewed_at TIMESTAMPTZ,
+    rejection_reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Add column merchant approval works
-ALTER TABLE merchant_profiles ADD COLUMN approval_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (approval_status IN (
-  'pending',
-            'approved',
-            'rejected',
-            'suspended'
-));
 
 
+CREATE UNIQUE INDEX IF NOT EXISTS
+    merchant_applications_one_active_per_user
+ON merchant_applications (user_id)
+WHERE status IN ('pending', 'approved');
+
+
+
+CREATE INDEX IF NOT EXISTS idx_merchant_applications_user_id
+    ON merchant_applications(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_merchant_applications_status
+    ON merchant_applications(status);
+
+
+-- verify table
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_name IN (
+      'users',
+      'buyer_profiles',
+      'merchant_applications'
+  )
+ORDER BY table_name;
+
+
+SELECT indexname
+FROM pg_indexes
+WHERE schemaname = 'public'
+  AND tablename = 'merchant_applications'
+ORDER BY indexname;
+
+
+
+-- ----------------------------
 SELECT * FROM users;
-SELECT * FROM merchant_profiles;
 SELECT * FROM buyer_profiles;
+SELECT * FROM merchant_applications;
 
-DELETE FROM USERS WHERE FULL_NAME = 'asdfdasf';
+DELETE FROM users WHERE full_name = 'Asif';
 
-DROP TABLE users CASCADE;
-
-
--- INSERT INTO merchant_profiles(user_id, studio_or_brand_name, trade_license, category, created_at, updated_at) VALUES();
+INSERT INTO buyer_profiles(user_id, delivery_city) VALUES()
 
 
--- SELECT NOW();
+SELECT current_database(), current_user;
