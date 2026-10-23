@@ -6,7 +6,7 @@ const buyerRegistrationValidation = [
     .notEmpty()
     .withMessage("Full name is required")
     .isLength({ min: 4 })
-    .withMessage("Name must be at least 2 characters.")
+    .withMessage("Name must be at least 4 characters.")
     .matches(/^[A-Za-z\s]+$/)
     .withMessage("Name can only contain letters and spaces"),
 
@@ -20,7 +20,7 @@ const buyerRegistrationValidation = [
     .withMessage("Please enter a valid email address")
     .customSanitizer((value) => value.toLowerCase()),
 
-  body("mobilePhone")
+  body("phone")
     .trim()
     .notEmpty()
     .withMessage("Phone number is required")
@@ -45,7 +45,7 @@ const buyerRegistrationValidation = [
     .notEmpty()
     .withMessage("Delivery city is required"),
 
-  body("agreementAccepted")
+  body("agreed")
     .custom((value) => value === true)
     .withMessage("You must agree to the terms"),
 ];
