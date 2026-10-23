@@ -5,6 +5,8 @@ import { createBuyer } from "../models/customerModel.js";
 export const registerBuyer = async (req, res, next) => {
   const buyerBody = req.body;
 
+  console.log("1.----Buyer:------>", buyerBody);
+
   const { name, email, phone, password, deliveryCity } = buyerBody;
 
   let client;
@@ -21,7 +23,9 @@ export const registerBuyer = async (req, res, next) => {
     await client.query("BEGIN");
     transaction = true;
 
-    const user = await createBuyer(client, {
+    console.log("2. before database connection");
+
+    const { user, buyerProfile } = await createBuyer(client, {
       fullName: name.trim(),
       email: email.trim().toLowerCase(),
       mobilePhone: phone.trim(),
@@ -29,7 +33,7 @@ export const registerBuyer = async (req, res, next) => {
       deliveryCity: deliveryCity.trim(),
     });
 
-    // console.log(user);
+    console.log("4. after database connection");
 
     // Commit transaction
     await client.query("COMMIT");
@@ -49,25 +53,27 @@ export const registerBuyer = async (req, res, next) => {
           createdAt: user.created_at,
         },
         buyerProfile: {
-          deliveryCity: deliveryCity.trim(),
+          deliveryCity: buyerProfile.deliveryCity,
         },
       },
     });
   } catch (error) {
+    console.log("--->error-->", error);
     if (client && transaction) {
       try {
         await client.query("ROLLBACK");
       } catch (rollbackError) {
-        return next(rollbackError);
+        error.rollbackError = rollbackError;
       }
     }
-    // duplicate email find
+    // Handle duplicate email
     if (error.code === "23505" && error.constraint === "users_email_key") {
       return res.status(409).json({
         success: false,
-        message: "An account with this email already exists.",
+        message: "An account with this email address already exists",
       });
     }
+    return next(error);
   } finally {
     if (client) {
       client.release();
