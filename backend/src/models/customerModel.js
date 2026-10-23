@@ -20,10 +20,14 @@ export const createBuyer = async (client, buyerData) => {
   const user = userResult.rows[0];
 
   // Store the buyer profile
-  await client.query(
-    `INSERT INTO buyer_profiles(user_id, delivery_city) VALUES($1, $2)`,
+  const profileResult = await client.query(
+    `INSERT INTO buyer_profiles(user_id, delivery_city) VALUES($1, $2)
+    RETURNING *`,
     [user.id, deliveryCity],
   );
 
-  return user;
+  return {
+    user,
+    buyerProfile: profileResult.rows[0],
+  };
 };
