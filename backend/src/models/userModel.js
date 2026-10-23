@@ -1,27 +1,36 @@
 import pool from "../config/db.js";
 
-// duplicate email or phone number detect
-export const findUserByEmailOrPhone = async (email, phone, tradeLicense) => {
-  const query = `SELECT users.user_id, users.email, users.phone, mp.trade_license FROM users JOIN merchant_profiles mp ON users.user_id = mp.user_id WHERE users.email = $1 OR users.phone = $2 OR mp.trade_license = $3`;
+// Find an existing account by email or phone
+export const findUserByEmailOrPhone = async (email, phone) => {
+  const query = `SELECT user_id, email, phone FROM users WHERE email = $1 OR phone = $2 LIMIT 1`;
 
-  const values = [email, phone, tradeLicense];
+  const values = [email, phone];
 
   const result = await pool.query(query, values);
 
-  return result.rows[0];
+  return result.rows[0] ?? null;
 };
 
-// insert authentication data
+export const findMerchantByTradeLicense = async (tradeLicense) => {
+  const query = `SELECT merchant_id, user_id, trade_license FROM merchant_profiles WHERE trade_license = $1 LIMIT 1;`;
+
+  const value = [tradeLicense];
+
+  const result = await pool.query(query, value);
+
+  return result.rows[0] ?? null;
+};
+
+// Insert account authentication data
 export const insertUserData = async (
   client,
   full_name,
   email,
   phone,
   password_hash,
-  role,
+  role = "user"
 ) => {
-  const query = `INSERT INTO users(full_name, email, phone, password_hash, role, is_active, created_at, updated_at) VALUES($1, $2, $3, $4, $5, DEFAULT, DEFAULT, DEFAULT)
-  RETURNING user_id, full_name, email, phone, role, is_active`;
+  const query = ``;
 
   const values = [full_name, email, phone, password_hash, role];
 
