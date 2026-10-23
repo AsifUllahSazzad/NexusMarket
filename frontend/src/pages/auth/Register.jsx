@@ -23,8 +23,9 @@ const Register = ({ onNavigate }) => {
     // Name
     if (!name.trim()) {
       newErrors.name = "Full name is required";
-    } else if (name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
+    } else if (name.trim().length < 4) {
+      newErrors.name = "Name must be at least 4 characters";
+      ``;
     } else if (!/^[A-Za-z\s]+$/.test(name.trim())) {
       newErrors.name = "Name can only contain letters and spaces";
     }
@@ -68,8 +69,8 @@ const Register = ({ onNavigate }) => {
       // Studio/Brand Name
       if (!storeName.trim()) {
         newErrors.storeName = "Store name is required";
-      } else if (storeName.trim().length < 2) {
-        newErrors.storeName = "Store name must be at least 2 characters";
+      } else if (storeName.trim().length < 4) {
+        newErrors.storeName = "Store name must be at least 4 characters";
       }
 
       // Trade License/NID/BIN
@@ -136,6 +137,7 @@ const Register = ({ onNavigate }) => {
           phone,
           password,
           deliveryCity,
+          agreed,
         });
 
         console.log("Customer: ", response);
@@ -148,10 +150,10 @@ const Register = ({ onNavigate }) => {
         }
       }
     } catch (err) {
-      // console.error(err.response.data.error);
-
+      let newError = {};
       if (err.response?.status === 409) {
-        return setErrors(err.response?.data?.errors);
+        newError.email = err.response?.data?.message;
+        return setErrors(newError);
       }
 
       setErrors({
@@ -366,6 +368,7 @@ const Register = ({ onNavigate }) => {
                     <option>Curated Apparel & Leather Goods</option>
                     <option>Smart Home & IoT</option>
                     <option>Photography & Optics</option>
+                    <option>Fashion</option>
                   </select>
                 </div>
 
