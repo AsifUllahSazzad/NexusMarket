@@ -18,12 +18,15 @@ const buyerRegistrationValidation = [
     .withMessage("Please enter a valid email address")
     .isEmail()
     .withMessage("Please enter a valid email address")
-    .customSanitizer((value) => value.toLowerCase()),
+    .customSanitizer((value) => value.toLowerCase())
+    .normalizeEmail(),
 
   body("phone")
     .trim()
     .notEmpty()
     .withMessage("Phone number is required")
+    .isLength({ min: 7, max: 16 })
+    .withMessage("Enter a valid mobile phone number.")
     .customSanitizer((value) => value.replace(/[\s-]/g, ""))
     .matches(/^(?:01[3-9]\d{8}|\+8801[3-9]\d{8})$/)
     .withMessage("Enter a valid Bangladesh phone number"),

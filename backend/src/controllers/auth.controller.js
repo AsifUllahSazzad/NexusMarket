@@ -1,93 +1,35 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
-import { createBuyer } from "../models/customerModel.js";
 
-export const registerBuyer = async (req, res, next) => {
-  const buyerBody = req.body;
+export async function login(req, res) {
+  const email = req.body.email?.toLowerCase().trim();
+  const password = req.body.password;
 
-  console.log("1.----Buyer:------>", buyerBody);
+  console.log("hi")
 
-  const { name, email, phone, password, deliveryCity } = buyerBody;
-
-  let client;
-  let transaction = false;
-
-  try {
-    // Hash the password
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    // PostgreSql connection
-    client = await pool.connect();
-
-    // Begin transaction
-    await client.query("BEGIN");
-    transaction = true;
-
-    console.log("2. before database connection");
-
-    const { user, buyerProfile } = await createBuyer(client, {
-      fullName: name.trim(),
-      email: email.trim().toLowerCase(),
-      mobilePhone: phone.trim(),
-      passwordHash,
-      deliveryCity: deliveryCity.trim(),
-    });
-
-    console.log("4. after database connection");
-
-    // Commit transaction
-    await client.query("COMMIT");
-    transaction = false;
-
-    // responds to the frontend
-    return res.status(201).json({
-      success: true,
-      message: "Buyer registered successfully.",
-      data: {
-        user: {
-          id: user.id,
-          fullName: user.full_name,
-          email: user.email,
-          mobilePhone: user.mobile_phone,
-          role: user.role,
-          createdAt: user.created_at,
-        },
-        buyerProfile: {
-          deliveryCity: buyerProfile.deliveryCity,
-        },
-      },
-    });
-  } catch (error) {
-    console.log("--->error-->", error);
-    if (client && transaction) {
-      try {
-        await client.query("ROLLBACK");
-      } catch (rollbackError) {
-        error.rollbackError = rollbackError;
-      }
-    }
-    // Handle duplicate email
-    if (error.code === "23505" && error.constraint === "users_email_key") {
-      return res.status(409).json({
-        success: false,
-        message: "An account with this email address already exists",
-      });
-    }
-    return next(error);
-  } finally {
-    if (client) {
-      client.release();
-    }
+  if (!email || !password) {
+    return res
+      .status(400)
+      .json({ message: "Email and password are required." });
   }
-};
 
-/*
-{
-  id: '10',
-  full_name: 'Asif',
-  email: 'sfdfdsf@g.c',
-  mobile_phone: '+880 1620913413',
-  role: 'buyer',
-  created_at: 2026-10-22T21:27:48.378Z
+  const result = await pool.query(
+    "SELECT id, password_hash, role FROM users WHERE email = $1",
+    [email],
+  );
+  const user = result.rows[0];
+
+  // Same message for both cases so attackers can't tell which emails exist
+  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+    return res.status(401).json({ message: "Invalid email or password." });
+  }
+
+  // Your snippet goes here, after the password is verified
+  const token = jwt.sign({ role: user.role }, process.env.JWT_SECRET, {
+    subject: String(user.id),
+    expiresIn: "1h",
+  });
+
+  return res.status(200).json({ message: "Login successful", token });
 }
-*/

@@ -11,6 +11,8 @@ import { notFound } from "./middleware/not-found.middleware.js";
 
 import authRoute from "./routes/auth.routes.js";
 
+import adminRoute from './routes/admin.routes.js'
+
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -49,6 +51,9 @@ app.use("/api/validation", validationRoute);
 
 // Real
 app.use("/api/auth", authRoute);
+
+// Admin Route
+app.use("/api/admin", adminRoute)
 
 // Error handle
 app.use(notFound);
