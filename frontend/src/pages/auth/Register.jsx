@@ -75,10 +75,10 @@ const Register = ({ onNavigate }) => {
 
       // Trade License/NID/BIN
       if (!tradeLicense.trim()) {
-        newErrors.tradeLicense = "Trade license / NID / BIN is required";
-      } else if (!/^[A-Za-z0-9]{4,20}$/.test(tradeLicense.trim())) {
+        newErrors.tradeLicense = "Trade license, NID, or BIN code is required";
+      } else if (!/^[A-Za-z0-9]{8,20}$/.test(tradeLicense.trim())) {
         newErrors.tradeLicense =
-          "Enter a valid Trade license / NID / BIN (4–20 alphanumeric characters)";
+          "Enter a valid Trade license / NID / BIN (8–20 alphanumeric characters)";
       }
     }
 
@@ -102,13 +102,13 @@ const Register = ({ onNavigate }) => {
 
     setErrors({});
 
-    // const validationError = validateForm();
-    // console.log(validationError)
-    // setErrors(validationError);
+    const validationError = validateForm();
+    console.log(validationError);
+    setErrors(validationError);
 
-    // if (Object.keys(validationError).length > 0) {
-    //   return;
-    // }
+    if (Object.keys(validationError).length > 0) {
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -122,6 +122,7 @@ const Register = ({ onNavigate }) => {
           category,
           tradeLicense,
           password,
+          agreed,
         });
         console.log("Merchant: ", response);
 
@@ -152,7 +153,7 @@ const Register = ({ onNavigate }) => {
       }
     } catch (err) {
       const errorData = err.response?.data?.errors;
-      console.log(err.response?.status);
+      console.log("Error----->", err);
 
       let newErrors = {};
       if (err.response?.status === 400) {
