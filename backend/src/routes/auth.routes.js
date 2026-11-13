@@ -27,6 +27,7 @@ router.post(
   registerMerchant,
 );
 
+// Login Anyone
 router.post("/login", login);
 
 export default router;

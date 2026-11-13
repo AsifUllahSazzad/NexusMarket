@@ -11,7 +11,7 @@ import { notFound } from "./middleware/not-found.middleware.js";
 
 import authRoute from "./routes/auth.routes.js";
 
-import adminRoute from './routes/admin.routes.js'
+import adminRoute from "./routes/admin.routes.js";
 
 const app = express();
 
@@ -53,7 +53,7 @@ app.use("/api/validation", validationRoute);
 app.use("/api/auth", authRoute);
 
 // Admin Route
-app.use("/api/admin", adminRoute)
+app.use("/api/admin", adminRoute);
 
 // Error handle
 app.use(notFound);
