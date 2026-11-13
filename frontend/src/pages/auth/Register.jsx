@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useState } from "react";
 import { NavLink } from "react-router";
-const Register = ({ onNavigate }) => {
+
+const Register = ({ onNavigate = () => {} }) => {
   const [role, setRole] = useState("merchant");
   const [name, setName] = useState("");
   const [storeName, setStoreName] = useState("");
@@ -15,8 +16,8 @@ const Register = ({ onNavigate }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
-  // validation form:
   const validateForm = () => {
     const newErrors = {};
 
@@ -25,7 +26,6 @@ const Register = ({ onNavigate }) => {
       newErrors.name = "Full name is required";
     } else if (name.trim().length < 4) {
       newErrors.name = "Name must be at least 4 characters";
-      ``;
     } else if (!/^[A-Za-z\s]+$/.test(name.trim())) {
       newErrors.name = "Name can only contain letters and spaces";
     }
@@ -42,13 +42,13 @@ const Register = ({ onNavigate }) => {
       newErrors.phone = "Phone number is required";
     } else {
       const cleanPhone = phone.replace(/[\s-]/g, "");
-
       const bdPhoneRegex = /^(?:01[3-9]\d{8}|\+8801[3-9]\d{8})$/;
 
       if (!bdPhoneRegex.test(cleanPhone)) {
         newErrors.phone = "Enter a valid Bangladesh phone number";
       }
     }
+
     // Password
     if (!password) {
       newErrors.password = "Password is required";
@@ -66,14 +66,12 @@ const Register = ({ onNavigate }) => {
 
     // Merchant-specific validation
     if (role === "merchant") {
-      // Studio/Brand Name
       if (!storeName.trim()) {
         newErrors.storeName = "Store name is required";
       } else if (storeName.trim().length < 4) {
         newErrors.storeName = "Store name must be at least 4 characters";
       }
 
-      // Trade License/NID/BIN
       if (!tradeLicense.trim()) {
         newErrors.tradeLicense = "Trade license, NID, or BIN code is required";
       } else if (!/^[A-Za-z0-9]{8,20}$/.test(tradeLicense.trim())) {
@@ -99,11 +97,9 @@ const Register = ({ onNavigate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setErrors({});
 
     const validationError = validateForm();
-    console.log(validationError);
     setErrors(validationError);
 
     if (Object.keys(validationError).length > 0) {
@@ -124,7 +120,6 @@ const Register = ({ onNavigate }) => {
           password,
           agreed,
         });
-        console.log("Merchant: ", response);
 
         if (response.data.success) {
           setSuccess(true);
@@ -142,8 +137,6 @@ const Register = ({ onNavigate }) => {
           agreed,
         });
 
-        console.log("Customer: ", response);
-
         if (response.data.success) {
           setSuccess(true);
           setTimeout(() => {
@@ -153,20 +146,18 @@ const Register = ({ onNavigate }) => {
       }
     } catch (err) {
       const errorData = err.response?.data?.errors;
-      console.log("Error----->", err);
+      const serverErrors = {};
 
-      let newErrors = {};
-      if (err.response?.status === 400) {
+      if (err.response?.status === 400 && Array.isArray(errorData)) {
         errorData.forEach((er) => {
-          newErrors[er.field] = er.message;
+          serverErrors[er.field] = er.message;
         });
-
-        return setErrors(newErrors);
+        return setErrors(serverErrors);
       }
 
       if (err.response?.status === 409) {
-        newErrors.email = err.response?.data?.message;
-        return setErrors(newErrors);
+        serverErrors.email = err.response?.data?.message;
+        return setErrors(serverErrors);
       }
 
       setErrors({
@@ -206,7 +197,11 @@ const Register = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => setRole("buyer")}
-            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${role === "buyer" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-outline-variant/60 hover:border-outline"}`}
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              role === "buyer"
+                ? "border-primary bg-primary/5 ring-1 ring-primary"
+                : "border-outline-variant/60 hover:border-outline"
+            }`}
           >
             <div className="flex items-center gap-2 mb-1.5">
               <span className="material-symbols-outlined text-primary text-xl">
@@ -225,7 +220,11 @@ const Register = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => setRole("merchant")}
-            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${role === "merchant" ? "border-secondary bg-secondary/5 ring-1 ring-secondary" : "border-outline-variant/60 hover:border-outline"}`}
+            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+              role === "merchant"
+                ? "border-secondary bg-secondary/5 ring-1 ring-secondary"
+                : "border-outline-variant/60 hover:border-outline"
+            }`}
           >
             <div className="flex items-center gap-2 mb-1.5">
               <span className="material-symbols-outlined text-secondary text-xl">
@@ -242,7 +241,6 @@ const Register = ({ onNavigate }) => {
           </button>
         </div>
 
-        {/* resolve must */}
         {success ? (
           <div className="text-center py-8 space-y-3">
             <div className="w-14 h-14 rounded-full bg-secondary/15 text-secondary flex items-center justify-center mx-auto">
@@ -297,7 +295,6 @@ const Register = ({ onNavigate }) => {
                     placeholder="e.g. Apex Acoustics"
                     className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                   />
-
                   {errors.storeName && (
                     <p className="mt-1 pl-1 text-[11px] text-red-500">
                       {errors.storeName}
@@ -316,7 +313,6 @@ const Register = ({ onNavigate }) => {
                     onChange={(e) => setDeliveryCity(e.target.value)}
                     className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                   />
-
                   {errors.deliveryCity && (
                     <p className="mt-1 pl-1 text-[11px] text-red-500">
                       {errors.deliveryCity}
@@ -337,7 +333,6 @@ const Register = ({ onNavigate }) => {
                   placeholder="tanvir@example.com"
                   className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
                 />
-
                 {errors.email && (
                   <p className="mt-1 pl-1 text-[11px] text-red-500">
                     {errors.email}
@@ -397,7 +392,6 @@ const Register = ({ onNavigate }) => {
                     placeholder="e.g. TRAD/DNCC/01928"
                     className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 focus:ring-primary"
                   />
-
                   {errors.tradeLicense && (
                     <p className="mt-1 pl-1 text-[11px] text-red-500">
                       {errors.tradeLicense}
@@ -407,19 +401,32 @@ const Register = ({ onNavigate }) => {
               </div>
             )}
 
-            <div>
+            <div className="pt-2">
               <label className="block font-medium text-on-surface mb-1">
                 Create Password
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters with numbers"
-                className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-              />
-
+              <div className="relative flex items-center">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 8 characters with numbers"
+                  className="w-full h-10 pl-3 pr-11 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+                <button
+                  id="togglePasswordBtn"
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high/60 rounded-lg transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-lg select-none">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
               {errors.password && (
                 <p className="mt-1 pl-1 text-[11px] text-red-500">
                   {errors.password}
@@ -427,38 +434,32 @@ const Register = ({ onNavigate }) => {
               )}
             </div>
 
-            {role === "merchant" ? (
-              <div className="pt-2">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded text-primary border-outline-variant accent-primary cursor-pointer"
-                  />
-                  <span className="text-[11px] text-outline leading-tight">
-                    I agree to NexusMarket’s Merchant Code of Conduct, Escrow
-                    Vault Guarantee, and 7-Day Doorstep Inspection Rules.
-                  </span>
-                </label>
-              </div>
-            ) : (
-              <div className="pt-2">
-                <label className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded text-primary border-outline-variant accent-primary cursor-pointer"
-                  />
-                  <span className="text-[11px] text-outline leading-tight">
-                    I agree to NexusMarket’s Buyer Code of Conduct, Escrow Vault
-                    Guarantee, and 7-Day Doorstep Inspection Rules.
-                  </span>
-                </label>
-              </div>
+            <div className="pt-2">
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  required
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded text-primary border-outline-variant accent-primary cursor-pointer"
+                />
+                <span className="text-[11px] text-outline leading-tight">
+                  {role === "merchant"
+                    ? "I agree to NexusMarket’s Merchant Code of Conduct, Escrow Vault Guarantee, and 7-Day Doorstep Inspection Rules."
+                    : "I agree to NexusMarket’s Buyer Code of Conduct, Escrow Vault Guarantee, and 7-Day Doorstep Inspection Rules."}
+                </span>
+              </label>
+              {errors.agreed && (
+                <p className="mt-1 pl-1 text-[11px] text-red-500">
+                  {errors.agreed}
+                </p>
+              )}
+            </div>
+
+            {errors.submit && (
+              <p className="text-[11px] text-red-500 font-medium">
+                {errors.submit}
+              </p>
             )}
 
             <button
@@ -492,7 +493,7 @@ const Register = ({ onNavigate }) => {
         <div className="mt-6 text-center pt-4 border-t border-outline-variant/30 text-xs text-outline">
           Already registered?{" "}
           <NavLink
-            to={"/login"}
+            to="/login"
             onClick={() => onNavigate("signin")}
             className="text-primary font-bold hover:underline cursor-pointer"
           >
