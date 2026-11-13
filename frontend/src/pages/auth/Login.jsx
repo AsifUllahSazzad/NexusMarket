@@ -1,86 +1,54 @@
 import axios from "axios";
 import { useState } from "react";
-import { NavLink } from "react-router";
-
-const Login = ({ onNavigate }) => {
+const Login = ({ onNavigate = () => {} }) => {
   const [accountType, setAccountType] = useState("buyer");
-  const [email, setEmail] = useState("tanvir@nexus.market");
-  const [password, setPassword] = useState(
-    "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
-  );
+  const [email, setEmail] = useState("asif@gmail.com");
+  const [password, setPassword] = useState("Sazzad123");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signedInSuccess, setSignedInSuccess] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [notice, setNotice] = useState("");
 
-  /*
-login -> frontend validation
-*/
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+    setIsSubmitting(true);
+    setNotice("");
 
-  setErrors({});
-  setIsSubmitting(true);
+    try {
+      const response = await axios.post("/api/auth/login", {
+        email,
+        password,
+        accountType,
+        rememberMe,
+      });
 
-  console.log("Remember me:", rememberMe);
+      const data = response.data;
 
-  try {
-    const response = await axios.post("/api/auth/login", {
-      email,
-      password,
-    });
+      // Store JWT token
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem("token", data.token);
 
-    console.log("Login response:", response.data);
-
-    if (response.data.success) {
       setSignedInSuccess(true);
 
+      // Navigate according to verified backend role
       setTimeout(() => {
-        onNavigate("home");
-      }, 1000);
+        if (data.user.role === "merchant") {
+          onNavigate("merchant-dashboard");
+        } else {
+          onNavigate("home");
+        }
+      }, 800);
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Unable to connect to the server";
+
+      setNotice(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-  } catch (error) {
-    const status = error.response?.status;
-    const backendErrors = error.response?.data?.errors;
-
-    console.log("Status:", status);
-    console.log("Errors:", backendErrors);
-
-    // Send backend errors to React state
-    setErrors(backendErrors || {});
-
-    // 404 → account not found
-    if (status === 404) {
-      console.log("User not found");
-    }
-
-    // 401 → wrong password
-    if (status === 401) {
-      console.log("Incorrect password");
-    }
-
-    // 422 → validation error
-    if (status === 422) {
-      console.log("Validation error");
-    }
-
-    // 500 → server error
-    if (status >= 500) {
-      console.log("Server error");
-    }
-
-    // No response → server/network problem
-    if (!error.response) {
-      console.log("Cannot connect to server");
-    }
-
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <div className="w-full flex-1 flex items-center justify-center py-12 px-gutter">
@@ -138,7 +106,9 @@ login -> frontend validation
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block font-medium text-on-surface mb-1">
-                {accountType === "buyer" ? "Email" : "Merchant Business Email"}
+                {accountType === "buyer"
+                  ? "Email or Mobile Phone"
+                  : "Merchant Business Email"}
               </label>
               <div className="relative">
                 <input
@@ -153,11 +123,6 @@ login -> frontend validation
                   alternate_email
                 </span>
               </div>
-              {errors.email && (
-                <p className="mt-1 pl-1 text-[11px] text-red-500 text-center">
-                  {errors.email}
-                </p>
-              )}
             </div>
 
             <div>
@@ -166,8 +131,8 @@ login -> frontend validation
                 <button
                   type="button"
                   onClick={() =>
-                    alert(
-                      "Password reset link sent to your registered address.",
+                    setNotice(
+                      "Password reset link has been dispatched to your email address.",
                     )
                   }
                   className="text-xs text-primary hover:underline font-semibold cursor-pointer"
@@ -175,39 +140,56 @@ login -> frontend validation
                   Forgot Password?
                 </button>
               </div>
-              <div className="relative">
+              <div className="relative flex items-center">
+                <span className="material-symbols-outlined absolute left-3 text-outline text-base pointer-events-none select-none">
+                  lock
+                </span>
                 <input
+                  id="signInPasswordInput"
                   type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your secure password"
-                  className="w-full h-10 pl-9 pr-10 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                  className="w-full h-10 pl-9 pr-11 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary font-mono text-xs"
                 />
-                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-base">
-                  lock
-                </span>
                 <button
+                  id="togglePasswordBtn"
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-outline hover:text-on-surface cursor-pointer"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 w-7 h-7 flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high/60 rounded-lg transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-base">
+                  <span className="material-symbols-outlined text-lg select-none">
                     {showPassword ? "visibility_off" : "visibility"}
                   </span>
                 </button>
               </div>
-
-              {errors.password && (
-                <p className="mt-1 pl-1 text-[11px] text-center text-red-500">
-                  {errors.password}
-                </p>
-              )}
             </div>
+
+            {notice && (
+              <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-on-surface flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-error text-base">
+                    info
+                  </span>
+                  <span className="text-error">{notice}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNotice("")}
+                  className="text-outline hover:text-on-surface cursor-pointer text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             <div className="flex items-center justify-between py-1">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
+                  required
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
@@ -255,9 +237,7 @@ login -> frontend validation
                 <button
                   type="button"
                   onClick={() =>
-                    alert(
-                      "Signing in with verified Google Workspace account...",
-                    )
+                    setNotice("Connecting to Google OAuth authentication...")
                   }
                   className="h-9 px-3 bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/60 rounded-xl flex items-center justify-center gap-2 font-medium text-on-surface transition-colors cursor-pointer"
                 >
@@ -267,7 +247,7 @@ login -> frontend validation
                 <button
                   type="button"
                   onClick={() =>
-                    alert("Signing in with bKash One-Tap Token...")
+                    setNotice("Authenticating with bKash One-Tap Token...")
                   }
                   className="h-9 px-3 bg-surface-container-low hover:bg-surface-container-high border border-outline-variant/60 rounded-xl flex items-center justify-center gap-2 font-medium text-pink-600 transition-colors cursor-pointer"
                 >
@@ -282,16 +262,17 @@ login -> frontend validation
         {/* Switch to Sign Up */}
         <div className="mt-6 text-center pt-4 border-t border-outline-variant/30 text-xs text-outline">
           New to NexusMarket?{" "}
-          <NavLink
-            to={"/register"}
+          <button
+            type="button"
             onClick={() => onNavigate("signup")}
             className="text-primary font-bold hover:underline cursor-pointer"
           >
             Create an Account / Sell with Us
-          </NavLink>
+          </button>
         </div>
       </div>
     </div>
   );
 };
+
 export default Login;
