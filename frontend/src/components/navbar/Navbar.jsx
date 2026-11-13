@@ -228,7 +228,7 @@ const Navbar = ({
         {/* Right Action Utilities */}
         <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
           <NavLink
-          to={'/register'}
+            to={"/register"}
             type="button"
             className="hidden lg:inline text-xs font-label-md text-on-surface hover:text-primary transition-colors font-medium cursor-pointer"
           >
@@ -332,6 +332,19 @@ const Navbar = ({
                     login
                   </span>
                   <span>Sign In Screen</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onNavigate("merchant-dashboard");
+                    setIsAccountOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-xs text-on-surface hover:bg-surface-container-low transition-colors text-left cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm text-primary">
+                    analytics
+                  </span>
+                  <NavLink to="/merchant-dashboard">Merchant Dashboard</NavLink>
                 </button>
                 <button
                   type="button"
