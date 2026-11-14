@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 
 const Navbar = ({
   currentScreen,
@@ -18,6 +18,8 @@ const Navbar = ({
   const [isDeptOpen, setIsDeptOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isScreensMenuOpen, setIsScreensMenuOpen] = useState(false);
+
+  const navigate = useNavigate();
 
   const departments = [
     "All Departments",
@@ -336,7 +338,7 @@ const Navbar = ({
                 <button
                   type="button"
                   onClick={() => {
-                    onNavigate("merchant-dashboard");
+                    navigate("/merchant-dashboard");
                     setIsAccountOpen(false);
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-xs text-on-surface hover:bg-surface-container-low transition-colors text-left cursor-pointer"

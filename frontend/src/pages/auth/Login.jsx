@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
-const Login = ({ onNavigate = () => {} }) => {
+import { useNavigate } from "react-router";
+const Login = () => {
   const [accountType, setAccountType] = useState("buyer");
   const [email, setEmail] = useState("asif@gmail.com");
   const [password, setPassword] = useState("Sazzad123");
@@ -9,6 +10,8 @@ const Login = ({ onNavigate = () => {} }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signedInSuccess, setSignedInSuccess] = useState(false);
   const [notice, setNotice] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,9 +38,9 @@ const Login = ({ onNavigate = () => {} }) => {
       // Navigate according to verified backend role
       setTimeout(() => {
         if (data.user.role === "merchant") {
-          onNavigate("merchant-dashboard");
+          navigate("/merchant-dashboard");
         } else {
-          onNavigate("home");
+          navigate("/");
         }
       }, 800);
     } catch (error) {
@@ -264,7 +267,7 @@ const Login = ({ onNavigate = () => {} }) => {
           New to NexusMarket?{" "}
           <button
             type="button"
-            onClick={() => onNavigate("signup")}
+            onClick={() => navigate("/register")}
             className="text-primary font-bold hover:underline cursor-pointer"
           >
             Create an Account / Sell with Us
