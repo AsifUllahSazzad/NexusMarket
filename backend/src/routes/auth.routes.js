@@ -13,6 +13,8 @@ import { login } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
+
+// Customer Registration
 router.post(
   "/register/customer",
   buyerRegistrationValidation,
@@ -20,6 +22,7 @@ router.post(
   registerBuyer,
 );
 
+// Merchant Registration
 router.post(
   "/register/merchant",
   merchantApplicationValidator,

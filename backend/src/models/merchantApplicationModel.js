@@ -76,6 +76,7 @@ export const createMerchantApplication = async (
   };
 };
 
+// Admin Sees Pending Merchant Applications
 export async function getPendingApplications(pool) {
   const query = `
     SELECT
@@ -100,8 +101,8 @@ export async function getPendingApplications(pool) {
   return result.rows;
 }
 
+// Approve Merchant Application by Admin
 export async function approveMerchantApplication(pool, applicationId, adminId) {
-
   const query = `
     UPDATE merchant_applications  
     SET
@@ -119,6 +120,7 @@ export async function approveMerchantApplication(pool, applicationId, adminId) {
   return result.rows[0] || null;
 }
 
+// Reject Merchant Application by Admin
 export async function rejectMerchantApplication(
   pool,
   applicationId,
@@ -142,3 +144,27 @@ export async function rejectMerchantApplication(
 
   return result.rows[0] || null;
 }
+
+// Get Merchant Application by User ID
+export const getMerchantApplicationByUserId = async (userId, pool) => {
+  const query = `SELECT
+      ma.id AS application_id,
+      u.full_name AS owner_name,
+      u.email,
+      u.mobile_phone AS phone,
+      ma.brand_name AS store_name,
+      ma.primary_product_category AS category,
+      ma.trade_license_code AS trade_license,
+      ma.status,
+      ma.created_at AS submitted_at,
+      ma.rejection_reason
+    FROM merchant_applications ma
+    INNER JOIN users u
+      ON ma.user_id = u.id
+    WHERE ma.user_id = $1
+    ORDER BY ma.created_at DESC
+    LIMIT 1`;
+
+  const result = await pool.query(query, [userId]);
+  return result.rows[0] || null;
+};

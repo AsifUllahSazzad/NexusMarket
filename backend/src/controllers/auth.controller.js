@@ -44,24 +44,27 @@ export async function login(req, res) {
 
     // Determine actual account type
     let actualRole = user.role;
+    let applicationStatus = null;
 
     if (user.role !== "admin") {
       const merchantResult = await pool.query(
-        `SELECT id
-         FROM merchant_applications
-         WHERE user_id = $1`,
+        `SELECT status
+     FROM merchant_applications
+     WHERE user_id = $1
+     LIMIT 1`,
         [user.id],
       );
 
       if (merchantResult.rows.length > 0) {
         actualRole = "merchant";
+        applicationStatus = merchantResult.rows[0].status;
       } else {
         actualRole = "buyer";
       }
     }
 
     // Verify selected account type
-    if (actualRole !== accountType) {
+  if (actualRole !== accountType) {
       return res.status(403).json({
         message: `This account cannot log in as ${accountType}.`,
       });
@@ -82,6 +85,7 @@ export async function login(req, res) {
         name: user.full_name,
         email: user.email,
         role: actualRole,
+        applicationStatus: applicationStatus,
       },
     });
   } catch (error) {

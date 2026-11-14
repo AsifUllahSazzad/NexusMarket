@@ -1,7 +1,9 @@
 import bcrypt from "bcrypt";
 import pool from "../config/db.js";
 import { createMerchantApplication } from "../models/merchantApplicationModel.js";
+import { getMerchantApplicationByUserId } from "../models/merchantApplicationModel.js";
 
+// Register Merchant
 export const registerMerchant = async (req, res, next) => {
   const {
     name,
@@ -80,5 +82,35 @@ export const registerMerchant = async (req, res, next) => {
     if (client) {
       client.release();
     }
+  }
+};
+
+// Get Merchant Profile and Application
+export const getMyMerchantApplication = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    console.log(userId);
+
+    const application = await getMerchantApplicationByUserId(userId, pool);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Merchant application not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      application,
+    });
+  } catch (error) {
+    console.error("Get merchant application error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
   }
 };

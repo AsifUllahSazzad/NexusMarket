@@ -49,11 +49,15 @@ app.get("/test-db", async (req, res) => {
 app.use("/api/health", healthRoute);
 app.use("/api/validation", validationRoute);
 
-// Real
+// Customer and Merchant Auth Route
 app.use("/api/auth", authRoute);
 
 // Admin Route
 app.use("/api/admin", adminRoute);
+
+// Merchant Route
+import merchantRoute from "./routes/merchant.routes.js";
+app.use("/api/merchant", merchantRoute);
 
 // Error handle
 app.use(notFound);

@@ -127,8 +127,8 @@ WHERE conrelid = 'users'::regclass
 
   
 SELECT * FROM users;
-SELECT * FROM buyer_profiles;
 SELECT * FROM merchant_applications;
+SELECT * FROM buyer_profiles;
 
 --   DROP DATABASE nexusmarketdb WITH (FORCE);
 
