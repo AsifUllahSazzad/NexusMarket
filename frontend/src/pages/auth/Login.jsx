@@ -29,6 +29,8 @@ const Login = () => {
 
       const data = response.data;
 
+      console.log(data);
+
       // Store JWT token
       const storage = rememberMe ? localStorage : sessionStorage;
       storage.setItem("token", data.token);
@@ -38,7 +40,13 @@ const Login = () => {
       // Navigate according to verified backend role
       setTimeout(() => {
         if (data.user.role === "merchant") {
-          navigate("/merchant-dashboard");
+          if (data.user.applicationStatus === "pending") {
+            navigate("/merchant/application-status");
+          } else if (data.user.applicationStatus === "rejected") {
+            navigate("/merchant/application-rejected");
+          } else {
+            navigate("/merchant/dashboard");
+          }
         } else {
           navigate("/");
         }

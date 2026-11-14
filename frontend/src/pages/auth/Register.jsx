@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 
 const Register = ({ onNavigate = () => {} }) => {
   const [role, setRole] = useState("merchant");
@@ -95,6 +95,8 @@ const Register = ({ onNavigate = () => {} }) => {
     return newErrors;
   };
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -121,10 +123,12 @@ const Register = ({ onNavigate = () => {} }) => {
           agreed,
         });
 
+        console.log(response.data);
+
         if (response.data.success) {
           setSuccess(true);
           setTimeout(() => {
-            onNavigate("home");
+            navigate("/merchant/application-status");
           }, 1500);
         }
       } else {

@@ -4,6 +4,8 @@ import Home from "../pages/public/Home";
 import Register from "../pages/auth/Register";
 import Login from "../pages/auth/Login";
 import MerchantDashboardScreen from "../merchant/MerchantDashboardScreen";
+import { MerchantPending } from "../pages/merchant/MerchantPending";
+import { MerchantRejected } from "../pages/merchant/MerchantRejected";
 
 const router = createBrowserRouter([
   {
@@ -22,8 +24,16 @@ const router = createBrowserRouter([
         element: <Login />,
       },
       {
-        path: "/merchant-dashboard",
+        path: "/merchant/dashboard",
         element: <MerchantDashboardScreen/>
+      },
+      {
+        path: "/merchant/application-status",
+        element: <MerchantPending/>
+      },
+      {
+        path: "/merchant/application-rejected",
+        element: <MerchantRejected/>
       }
     ],
   },

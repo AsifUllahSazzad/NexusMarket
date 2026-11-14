@@ -338,7 +338,7 @@ const Navbar = ({
                 <button
                   type="button"
                   onClick={() => {
-                    navigate("/merchant-dashboard");
+                    navigate("/merchant/dashboard");
                     setIsAccountOpen(false);
                   }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-xs text-on-surface hover:bg-surface-container-low transition-colors text-left cursor-pointer"
@@ -346,7 +346,7 @@ const Navbar = ({
                   <span className="material-symbols-outlined text-sm text-primary">
                     analytics
                   </span>
-                  <NavLink to="/merchant-dashboard">Merchant Dashboard</NavLink>
+                  <NavLink to="/merchant/dashboard">Merchant Dashboard</NavLink>
                 </button>
                 <button
                   type="button"
