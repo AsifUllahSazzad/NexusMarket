@@ -9,6 +9,7 @@ import {
   getPendingApplicationsController,
   approveApplicationController,
   rejectApplicationController,
+  loginAdminProfile,
 } from "../controllers/admin.controller.js";
 
 import { getAdminProfile } from "../controllers/admin.controller.js";
@@ -41,5 +42,8 @@ router.patch(
   requireAdmin,
   rejectApplicationController,
 );
+
+// Admin login
+router.post("/login", loginAdminProfile)
 
 export default router;
