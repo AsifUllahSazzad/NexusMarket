@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 
-export const MerchantPending = ({
-  application = {},
-  onNavigate = () => {},
-}) => {
+export const MerchantPending = ({ application }) => {
+  // Error
+
+
+  
   const [supportNotice, setSupportNotice] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(
@@ -82,6 +84,8 @@ export const MerchantPending = ({
     },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <div className="w-full max-w-[1160px] mx-auto px-gutter py-space-lg flex flex-col gap-6">
       {/* Top Bar */}
@@ -99,14 +103,14 @@ export const MerchantPending = ({
             </span>
           </div>
           <h1 className="font-headline-lg text-2xl font-bold text-on-surface tracking-tight">
-            Application Under Review
+            Application Under Review``
           </h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => onNavigate("signin")}
+            onClick={() => navigate("/login")}
             className="px-3.5 py-2 rounded-xl border border-outline-variant/60 hover:border-outline text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors inline-flex items-center gap-1.5 cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
@@ -238,7 +242,7 @@ export const MerchantPending = ({
 
             <button
               type="button"
-              onClick={() => onNavigate("home")}
+              onClick={() => navigate("/")}
               className="w-full px-5 py-2.5 rounded-xl border border-outline-variant/70 bg-surface-container-lowest hover:bg-surface-container-low text-xs font-medium text-on-surface transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">
