@@ -2,12 +2,25 @@ import { Router } from "express";
 
 import { authenticateToken } from "../middleware/authenticateToken.js";
 
-import { createProduct } from "../controllers/product.controller.js";
 import { requireApprovedMerchant } from "../middleware/requireApprovedMerchant.js";
+import {
+  createProductController,
+  getMerchantProductByIdController,
+  getMerchantProductsController,
+} from "../controllers/product.controller.js";
 
 const router = Router();
 
-// Only approved merchants can create products
-router.post("/", authenticateToken, requireApprovedMerchant, createProduct);
+// All product-management routes require an approved merchant
+router.use(authenticateToken, requireApprovedMerchant);
+
+// Create product
+router.post("/", createProductController);
+
+// Get all products belonging to logged-in merchant
+router.get("/", getMerchantProductsController);
+
+// Get one product belonging to logged-in merchant
+router.get("/:productId", getMerchantProductByIdController);
 
 export default router;

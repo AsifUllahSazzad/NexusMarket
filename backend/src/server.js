@@ -3,16 +3,6 @@ import express from "express";
 import cors from "cors";
 import pool from "./config/db.js";
 
-import healthRoute from "./routes/health.routes.js";
-import validationRoute from "./routes/validation.routes.js";
-
-import { errorHandler } from "./middleware/error.middleware.js";
-import { notFound } from "./middleware/not-found.middleware.js";
-
-import authRoute from "./routes/auth.routes.js";
-
-import adminRoute from "./routes/admin.routes.js";
-
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -46,20 +36,30 @@ app.get("/test-db", async (req, res) => {
 });
 
 // Demo Check
+import healthRoute from "./routes/health.routes.js";
+import validationRoute from "./routes/validation.routes.js";
 app.use("/api/health", healthRoute);
 app.use("/api/validation", validationRoute);
 
 // Customer and Merchant Auth Route
+import authRoute from "./routes/auth.routes.js";
 app.use("/api/auth", authRoute);
 
 // Admin Route
+import adminRoute from "./routes/admin.routes.js";
 app.use("/api/admin", adminRoute);
 
 // Merchant Route
 import merchantRoute from "./routes/merchant.routes.js";
 app.use("/api/merchant", merchantRoute);
 
+// Product Route
+import productRoute from "./routes/product.routes.js";
+app.use("/api/products", productRoute);
+
 // Error handle
+import { errorHandler } from "./middleware/error.middleware.js";
+import { notFound } from "./middleware/not-found.middleware.js";
 app.use(notFound);
 app.use(errorHandler);
 
