@@ -40,10 +40,11 @@ const Login = () => {
       // Navigate according to verified backend role
       setTimeout(() => {
         if (data.user.role === "merchant") {
-          if (data.user.applicationStatus === "pending") {
+          if (
+            data.user.applicationStatus === "pending" ||
+            data.user.applicationStatus === "rejected"
+          ) {
             navigate("/merchant/application-status");
-          } else if (data.user.applicationStatus === "rejected") {
-            navigate("/merchant/application-rejected");
           } else {
             navigate("/merchant/dashboard");
           }

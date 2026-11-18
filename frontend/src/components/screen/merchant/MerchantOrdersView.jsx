@@ -83,7 +83,7 @@ export const MerchantOrdersView = ({
                 {viewMode === "history" ? "Order History" : "Customer Orders"}
               </h2>
               <p className="text-xs text-on-surface-variant mt-0.5 tabular-nums">
-                Accept pending orders, update dispatch statuses, or inspect escrow details
+                Accept pending orders, update dispatch statuses, or inspect order details
               </p>
             </div>
 
@@ -286,7 +286,7 @@ export const MerchantOrdersView = ({
               </h3>
             </div>
             <p className="text-on-surface-variant">
-              Buyer <span className="font-semibold text-on-surface">{cancelTarget.customer}</span> will receive an automated escrow refund of{" "}
+              Buyer <span className="font-semibold text-on-surface">{cancelTarget.customer}</span> will receive an automated refund of{" "}
               <span className="font-mono font-semibold text-on-surface">
                 {formatPrice(cancelTarget.amountBDT)}
               </span>.

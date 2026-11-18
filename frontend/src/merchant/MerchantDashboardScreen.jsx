@@ -318,8 +318,8 @@ const MerchantDashboardScreen = ({
         icon: "inventory_2",
         color: "text-sky-600 dark:text-sky-400",
       },
-      "In Escrow": {
-        icon: "lock_clock",
+      "Pending Settlement": {
+        icon: "schedule",
         color: "text-amber-600 dark:text-amber-400",
       },
       Pending: {
@@ -877,9 +877,9 @@ const MerchantDashboardScreen = ({
                   </div>
 
                   <div className="pt-3 border-t border-outline-variant/40 flex items-center justify-between text-xs text-on-surface-variant">
-                    <span>Escrow Protected Rate</span>
+                    <span>Order Fulfillment Rate</span>
                     <span className="font-mono tabular-nums font-semibold text-secondary">
-                      100.0%
+                      99.4%
                     </span>
                   </div>
                 </div>

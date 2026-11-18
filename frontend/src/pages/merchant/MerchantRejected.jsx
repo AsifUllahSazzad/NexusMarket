@@ -1,26 +1,27 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
-export const MerchantRejected = ({
-  application = {},
-  onResubmit = () => {},
-  onNavigate = () => {},
-}) => {
+export const MerchantRejected = ({ application, onResubmit }) => {
   const [isReapplyOpen, setIsReapplyOpen] = useState(false);
   const [supportNotice, setSupportNotice] = useState("");
+
   const [reapplyForm, setReapplyForm] = useState({
-    ownerName: application.ownerName || "Tanvir Ahmed",
-    storeName: application.storeName || "SonicHub Official",
-    category: application.category || "Electronics & Audio",
-    tradeLicense: application.tradeLicense || "TRAD/DNCC/01928",
-    phone: application.phone || "+880 1712 000000",
+    ownerName: application.owner_name || "",
+    storeName: application.store_name || "",
+    category: application.category || "",
+    tradeLicense: application.trade_license || "",
+    phone: application.phone || "",
     complianceNote: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const verificationSteps = [
     {
       step: "01",
       title: "Application & Merchant Profile Submitted",
-      detail: `Received commercial submission for ${application.storeName || "SonicHub Official"}.`,
+      detail: `Received commercial submission for ${application.store_name}.`,
       timing: "Completed",
       state: "completed",
     },
@@ -50,44 +51,110 @@ export const MerchantRejected = ({
 
   const handleOpenReapply = () => {
     setReapplyForm({
-      ownerName: application.ownerName || "Tanvir Ahmed",
-      storeName: application.storeName || "SonicHub Official",
-      category: application.category || "Electronics & Audio",
-      tradeLicense: application.tradeLicense || "TRAD/DNCC/01928",
-      phone: application.phone || "+880 1712 000000",
+      ownerName: application.owner_name || "",
+      storeName: application.store_name || "",
+      category: application.category || "",
+      tradeLicense: application.trade_license || "",
+      phone: application.phone || "",
       complianceNote: "",
     });
+
+    setSubmitError("");
     setSupportNotice("");
     setIsReapplyOpen(true);
   };
 
-  const handleResubmitSubmit = (e) => {
+  const handleResubmitSubmit = async (e) => {
     e.preventDefault();
-    onResubmit({
-      ...application,
+
+    if (isSubmitting) return;
+
+    setSubmitError("");
+
+    const payload = {
       ownerName: reapplyForm.ownerName.trim(),
       storeName: reapplyForm.storeName.trim(),
       category: reapplyForm.category,
       tradeLicense: reapplyForm.tradeLicense.trim(),
       phone: reapplyForm.phone.trim(),
       complianceNote: reapplyForm.complianceNote.trim(),
-      submittedAt: "14 Nov 2026, Just now",
-    });
-    setIsReapplyOpen(false);
-    setSupportNotice("");
+    };
+
+    // OwnerName
+    if (!payload.ownerName.trim()) {
+      setSubmitError("Owner Full name is required");
+      return;
+    } else if (payload.ownerName.trim().length < 4) {
+      setSubmitError("Owner name must be at least 4 characters");
+      return;
+    } else if (!/^[A-Za-z\s]+$/.test(payload.ownerName.trim())) {
+      setSubmitError("Owner name can only contain letters and spaces");
+      return;
+    }
+    // StoreName
+    if (!payload.storeName.trim()) {
+      setSubmitError("Store name is required");
+      return;
+    } else if (payload.storeName.trim().length < 4) {
+      setSubmitError("Store name must be at least 4 characters");
+      return;
+    }
+
+    // TradeLicense
+    if (!payload.tradeLicense.trim()) {
+      setSubmitError("Trade license, NID, or BIN code is required");
+      return;
+    } else if (!/^[A-Za-z0-9]{8,20}$/.test(payload.tradeLicense.trim())) {
+      setSubmitError(
+        "Enter a valid Trade license / NID / BIN (8–20 alphanumeric characters)",
+      );
+      return;
+    }
+
+    // Phone
+    if (!payload.phone.trim()) {
+      setSubmitError("Phone number is required");
+      return;
+    } else {
+      const cleanPhone = payload.phone.replace(/[\s-]/g, "");
+      const bdPhoneRegex = /^(?:01[3-9]\d{8}|\+8801[3-9]\d{8})$/;
+
+      if (!bdPhoneRegex.test(cleanPhone)) {
+        setSubmitError("Enter a valid Bangladesh phone number");
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    try {
+      await onResubmit(payload);
+
+      setIsReapplyOpen(false);
+
+      setSupportNotice(
+        "Your application has been resubmitted successfully. Our compliance team will review your updated information.",
+      );
+    } catch (error) {
+      console.error("Resubmission error:", error);
+
+      setSubmitError(error.message || "Unable to resubmit your application.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  const navigate = useNavigate();
+
   return (
-    <div className="w-full max-w-[1160px] mx-auto px-gutter py-space-lg flex flex-col gap-6">
+    // max-w-[1380px]
+    <div className="w-full max-w-[1380px] mx-auto px-gutter py-space-lg flex flex-col gap-6">
       {/* Top Bar */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-outline-variant/50">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs text-on-surface-variant mb-1">
             <span>NexusMarket Seller</span>
             <span aria-hidden="true">/</span>
-            <span className="truncate">
-              {application.storeName || "Merchant Studio"}
-            </span>
+            <span className="truncate">{application.store_name}</span>
             <span aria-hidden="true">/</span>
             <span className="text-on-surface font-medium">
               Application Rejected
@@ -101,7 +168,7 @@ export const MerchantRejected = ({
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => onNavigate("signin")}
+            onClick={() => navigate("/login")}
             className="px-3.5 py-2 rounded-xl border border-outline-variant/60 hover:border-outline text-xs font-medium text-on-surface hover:bg-surface-container-low transition-colors inline-flex items-center gap-1.5 cursor-pointer"
           >
             <span className="material-symbols-outlined text-sm">logout</span>
@@ -151,7 +218,7 @@ export const MerchantRejected = ({
                 </span>
                 <span className="text-outline">·</span>
                 <span className="font-mono tabular-nums text-on-surface-variant">
-                  Ref #{application.applicationId || "APP-2026-8412"}
+                  Ref #{application.application_id}
                 </span>
                 <span className="text-outline">·</span>
                 <span className="font-mono tabular-nums text-error font-medium">
@@ -160,8 +227,7 @@ export const MerchantRejected = ({
               </div>
 
               <h2 className="text-xl sm:text-2xl font-extrabold text-on-surface tracking-tight leading-snug">
-                Action required before{" "}
-                {application.storeName || "SonicHub Official"} can go live
+                Action required before {application.store_name} can go live
               </h2>
 
               <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
@@ -187,7 +253,7 @@ export const MerchantRejected = ({
 
             <button
               type="button"
-              onClick={() => onNavigate("home")}
+              onClick={() => navigate("home")}
               className="px-5 py-2.5 rounded-xl border border-outline-variant/70 bg-surface-container-lowest hover:bg-surface-container-low text-xs font-medium text-on-surface transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">
@@ -212,10 +278,10 @@ export const MerchantRejected = ({
               Store / Brand Name
             </p>
             <p className="text-sm font-bold text-on-surface mt-0.5 truncate">
-              {application.storeName || "SonicHub Official"}
+              {application.store_name}
             </p>
             <p className="text-[11px] text-outline mt-0.5 truncate">
-              Owner: {application.ownerName || "Tanvir Ahmed"}
+              Owner: {application.owner_name}
             </p>
           </div>
         </div>
@@ -229,10 +295,10 @@ export const MerchantRejected = ({
               Commercial Category
             </p>
             <p className="text-sm font-bold text-on-surface mt-0.5 truncate">
-              {application.category || "Electronics & Audio"}
+              {application.category}
             </p>
             <p className="text-[11px] text-outline mt-0.5 truncate">
-              {application.email || "merchant@nexus.market"}
+              {application.email}
             </p>
           </div>
         </div>
@@ -246,7 +312,7 @@ export const MerchantRejected = ({
               Submitted License / BIN
             </p>
             <p className="text-sm font-bold text-on-surface font-mono tabular-nums mt-0.5 truncate">
-              {application.tradeLicense || "TRAD/DNCC/01928"}
+              {application.trade_license}
             </p>
             <p className="text-[11px] text-error mt-0.5 truncate">
               Flagged for mismatch
@@ -265,10 +331,10 @@ export const MerchantRejected = ({
               Decision Timestamp
             </p>
             <p className="text-sm font-bold text-error font-mono tabular-nums mt-0.5">
-              14 Nov 2026
+              {application.reviewed_at}
             </p>
             <p className="text-[11px] text-outline mt-0.5 truncate">
-              Re-review SLA: 24 Hours
+              Re-review SLA: 48 Hours
             </p>
           </div>
         </div>
@@ -304,8 +370,7 @@ export const MerchantRejected = ({
               </span>
             </div>
             <p className="text-on-surface leading-relaxed">
-              {application.rejectionReason ||
-                "Submitted Trade License / BIN code could not be matched with active commercial registry records, or the business owner contact details could not be verified."}
+              {application.rejection_reason}
             </p>
           </div>
 
@@ -432,6 +497,29 @@ export const MerchantRejected = ({
                 />
               </div>
 
+              <div>
+                <label className="block font-medium text-on-surface mb-1">
+                  Primary Product Category
+                </label>
+                <select
+                  value={reapplyForm.category}
+                  onChange={(e) => {
+                    setSubmitError("");
+                    setReapplyForm({
+                      ...reapplyForm,
+                      category: e.target.value,
+                    });
+                  }}
+                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  <option>Electronics &amp; Audio</option>
+                  <option>Mechanical Keyboards &amp; Tech Gear</option>
+                  <option>Curated Apparel &amp; Leather Goods</option>
+                  <option>Smart Home &amp; IoT</option>
+                  <option>Photography &amp; Optics</option>
+                </select>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-medium text-on-surface mb-1">
@@ -484,14 +572,33 @@ export const MerchantRejected = ({
                 />
               </div>
 
+              {submitError && (
+                <p role="alert" className="text-error text-center font-bold">
+                  {submitError}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full py-2.5 px-4 rounded-xl 
+    bg-primary hover:bg-primary-container 
+    text-on-primary font-semibold transition-colors 
+    cursor-pointer flex items-center justify-center gap-2
+    disabled:bg-gray-400 
+    disabled:hover:bg-gray-400
+    disabled:text-gray-200
+    disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-base">
                   send
                 </span>
-                <span>Resubmit for Commercial Review</span>
+
+                <span>
+                  {isSubmitting
+                    ? "Submitting..."
+                    : "Resubmit for Commercial Review"}
+                </span>
               </button>
             </form>
           ) : (
@@ -517,7 +624,7 @@ export const MerchantRejected = ({
                     <p className="text-on-surface-variant mt-0.5 leading-relaxed">
                       Confirm Trade License / NID / BIN matches owner{" "}
                       <span className="font-medium text-on-surface">
-                        {application.ownerName || "Tanvir Ahmed"}
+                        {application.owner_name}
                       </span>
                       .
                     </p>
@@ -535,7 +642,7 @@ export const MerchantRejected = ({
                     <p className="text-on-surface-variant mt-0.5 leading-relaxed">
                       Ensure{" "}
                       <span className="font-mono font-medium text-on-surface">
-                        {application.phone || "+880 1712 000000"}
+                        {application.phone}
                       </span>{" "}
                       can receive OTP &amp; compliance verification calls.
                     </p>
@@ -551,7 +658,7 @@ export const MerchantRejected = ({
                       Instant Re-entry to Queue
                     </p>
                     <p className="text-on-surface-variant mt-0.5 leading-relaxed">
-                      Resubmitted applications go straight to priority 24-hour
+                      Resubmitted applications go straight to priority 48-hour
                       commercial vetting.
                     </p>
                   </div>
@@ -574,7 +681,7 @@ export const MerchantRejected = ({
                   type="button"
                   onClick={() =>
                     setSupportNotice(
-                      `Appeal request logged for #${application.applicationId || "APP-2026-8412"}. Contact compliance@nexus.market for manual document review.`,
+                      `Appeal request logged for #${application.application_id}. Contact compliance@nexus.market for manual document review.`,
                     )
                   }
                   className="w-full py-2.5 px-4 rounded-xl border border-outline-variant/70 hover:bg-surface-container-low text-on-surface font-medium transition-colors cursor-pointer"

@@ -82,7 +82,7 @@ export const MerchantSettingsView = ({
     {
       key: "newOrders",
       title: "New Customer Orders",
-      desc: "Instant alerts when buyers place an escrow-backed order.",
+      desc: "Instant alerts when buyers place a new order.",
     },
     {
       key: "lowStockAlerts",
@@ -96,8 +96,8 @@ export const MerchantSettingsView = ({
     },
     {
       key: "payoutSettlements",
-      title: "Payout & Escrow Settlements",
-      desc: "Confirmations for bank withdrawals and released escrow funds.",
+      title: "Payout Settlements",
+      desc: "Confirmations for bank withdrawals and settled payouts.",
     },
     {
       key: "marketingUpdates",
@@ -409,26 +409,26 @@ export const MerchantSettingsView = ({
             <div className="py-3 last:pb-0 flex items-center justify-between gap-4">
               <div>
                 <p className="font-semibold text-on-surface">
-                  Escrow Withdrawal OTP Lock
+                  Withdrawal OTP Verification
                 </p>
                 <p className="text-on-surface-variant mt-0.5">
-                  Verify every bank or bKash settlement via registered phone OTP
+                  Verify every bank or bKash payout via registered phone OTP
                 </p>
               </div>
               <button
                 type="button"
                 role="switch"
-                aria-checked={security.escrowAutoReleaseOtp}
-                onClick={() => handleToggleSecurity("escrowAutoReleaseOtp")}
+                aria-checked={security.withdrawalOtpLock}
+                onClick={() => handleToggleSecurity("withdrawalOtpLock")}
                 className={`w-11 h-6 rounded-full p-0.5 transition-colors shrink-0 cursor-pointer ${
-                  security.escrowAutoReleaseOtp
+                  security.withdrawalOtpLock
                     ? "bg-primary"
                     : "bg-outline-variant"
                 }`}
               >
                 <span
                   className={`block w-5 h-5 rounded-full bg-white shadow-xs transition-transform ${
-                    security.escrowAutoReleaseOtp
+                    security.withdrawalOtpLock
                       ? "translate-x-5"
                       : "translate-x-0"
                   }`}

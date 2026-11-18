@@ -70,16 +70,16 @@ export const MerchantEarningsView = ({
 
         <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-5 flex flex-col justify-between gap-2">
           <div className="flex items-center justify-between text-xs text-on-surface-variant">
-            <span className="font-medium">Pending Escrow Payments</span>
+            <span className="font-medium">Pending Settlement</span>
             <span className="material-symbols-outlined text-lg text-amber-600 dark:text-amber-400">
-              lock_clock
+              schedule
             </span>
           </div>
           <p className="text-2xl font-bold text-on-surface font-mono tabular-nums">
             {formatPrice(earnings.pendingPaymentsBDT)}
           </p>
           <p className="text-xs text-on-surface-variant">
-            Releases upon buyer doorstep OTP confirmation
+            Scheduled for next payout cycle
           </p>
         </div>
       </div>
@@ -213,7 +213,7 @@ export const MerchantEarningsView = ({
           <div>
             <h2 className="text-base font-bold text-on-surface">Transaction History</h2>
             <p className="text-xs text-on-surface-variant mt-0.5">
-              Escrow releases, pending order holds, and completed payouts
+              Order credits, pending settlements, and completed payouts
             </p>
           </div>
           <div className="flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant/50 rounded-xl self-start sm:self-auto">

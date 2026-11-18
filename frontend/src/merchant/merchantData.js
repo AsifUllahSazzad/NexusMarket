@@ -1370,3 +1370,150 @@ export const MERCHANT_DASHBOARD_DATA = {
 
 
 
+// Application Status Data for Merchant Onboarding
+
+export const INITIAL_MERCHANT_APPLICATION = {
+  applicationId: 'NM-MER-10245',
+  storeName: 'Tech World BD',
+  applicantName: 'Asif Ullah',
+  businessCategory: 'Consumer Electronics & Accessories',
+  submittedDate: '12 November 2026',
+  lastUpdated: '14 November 2026',
+  rejectionDate: '14 November 2026',
+  verificationType: 'Trade License',
+  tradeLicenseNumber: 'TL-DHK-2026-88419',
+  expectedReviewTime: '1–2 business days (48h SLA)',
+  contactEmail: 'asifullahsazzad0@gmail.com',
+  buyerAccountActive: true,
+};
+
+export const PENDING_PROGRESS_STEPS = [
+  {
+    id: 'submitted',
+    step: '01',
+    title: 'Application Submitted',
+    status: 'Completed',
+    description: 'Your application was successfully received.',
+  },
+  {
+    id: 'verification',
+    step: '02',
+    title: 'Document Verification',
+    status: 'In Progress',
+    description: 'Our team is verifying your business documents.',
+  },
+  {
+    id: 'approval',
+    step: '03',
+    title: 'Business Approval',
+    status: 'Upcoming',
+    description: 'Final approval by the NexusMarket team.',
+  },
+  {
+    id: 'activation',
+    step: '04',
+    title: 'Merchant Account Activation',
+    status: 'Upcoming',
+    description: 'Your merchant dashboard and selling tools will be unlocked.',
+  },
+];
+
+export const WHAT_HAPPENS_NEXT = [
+  'Our verification team reviews your submitted information.',
+  'We may contact you if additional documents are required.',
+  'You will receive an email notification when your application status changes.',
+  'Once approved, you can access your merchant dashboard.',
+];
+
+export const REJECTION_DETAILS = {
+  headline: 'Document Verification Failed',
+  description:
+    'The submitted trade license information could not be verified. Please upload a valid and readable document containing the correct business information.',
+  remarks:
+    'Please ensure that your business registration details match your submitted application.',
+  nextSteps: [
+    'Review the rejection reason carefully.',
+    'Correct the inaccurate information.',
+    'Prepare the required supporting documents.',
+    'Submit a new application or request reconsideration, according to your platform policy.',
+  ],
+};
+
+export const INITIAL_VERIFICATION_REQUIREMENTS = [
+  {
+    id: 'req-1',
+    label: 'Valid Trade License',
+    detail: 'Issued by local city corporation or municipal authority matching Tech World BD.',
+    pendingStatus: 'In Review',
+    rejectedStatus: 'Verification Failed',
+    approvedStatus: 'Verified',
+  },
+  {
+    id: 'req-2',
+    label: 'Applicant Identity Proof',
+    detail: 'Government-issued photo ID matching applicant name Asif Ullah.',
+    pendingStatus: 'Verified',
+    rejectedStatus: 'Verified',
+    approvedStatus: 'Verified',
+  },
+  {
+    id: 'req-3',
+    label: 'Store & Contact Alignment',
+    detail: 'Active business email and storefront category compliance.',
+    pendingStatus: 'Pending Final Check',
+    rejectedStatus: 'Needs Reconfirmation',
+    approvedStatus: 'Verified',
+  },
+];
+
+export const INITIAL_DOCUMENTS = [
+  {
+    id: 'doc-tl',
+    name: 'Trade_License_Tech_World_BD.pdf',
+    type: 'Trade License',
+    size: '1.8 MB',
+    uploadedAt: '12 Nov 2026',
+    pendingState: 'Under Review',
+    rejectedState: 'Rejected — Unreadable Seal',
+    approvedState: 'Verified',
+    removable: false,
+  },
+  {
+    id: 'doc-nid',
+    name: 'Applicant_ID_Asif_Ullah.pdf',
+    type: 'Identity Document',
+    size: '740 KB',
+    uploadedAt: '12 Nov 2026',
+    pendingState: 'Verified',
+    rejectedState: 'Verified',
+    approvedState: 'Verified',
+    removable: false,
+  },
+];
+
+export const INITIAL_HISTORY = [
+  {
+    id: 'hist-1',
+    timestamp: '14 Nov 2026 · 10:15',
+    event: 'Document Verification Assigned',
+    actor: 'NexusMarket Trust & Safety Desk',
+    status: 'Under Review',
+    note: 'Trade license queued for registration number cross-check.',
+  },
+  {
+    id: 'hist-2',
+    timestamp: '12 Nov 2026 · 16:40',
+    event: 'Identity Record Verified',
+    actor: 'Automated KYC Check',
+    status: 'Completed',
+    note: 'Applicant photo ID matched submitted profile for Asif Ullah.',
+  },
+  {
+    id: 'hist-3',
+    timestamp: '12 Nov 2026 · 16:32',
+    event: 'Merchant Application Submitted',
+    actor: 'Asif Ullah',
+    status: 'Received',
+    note: 'Reference NM-MER-10245 created for Tech World BD.',
+  },
+];

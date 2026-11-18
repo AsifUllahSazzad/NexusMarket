@@ -39,14 +39,18 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 flex flex-col items-center justify-center text-white/80 gap-1">
-              <span className="material-symbols-outlined text-3xl">storefront</span>
+              <span className="material-symbols-outlined text-3xl">
+                storefront
+              </span>
               <span className="font-medium">{form.name} Storefront Banner</span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
 
           <label className="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface font-medium cursor-pointer flex items-center gap-1.5 shadow-sm transition-colors">
-            <span className="material-symbols-outlined text-sm">photo_camera</span>
+            <span className="material-symbols-outlined text-sm">
+              photo_camera
+            </span>
             <span>Change Banner</span>
             <input
               type="file"
@@ -101,7 +105,9 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
         {/* Identity & Description */}
         <section className="xl:col-span-7 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 space-y-4">
           <div className="pb-3 border-b border-outline-variant/40">
-            <h3 className="text-base font-bold text-on-surface">Store Identity & Description</h3>
+            <h3 className="text-base font-bold text-on-surface">
+              Store Identity & Description
+            </h3>
             <p className="text-xs text-on-surface-variant mt-0.5">
               Public brand details displayed across NexusMarket storefronts
             </p>
@@ -109,7 +115,9 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-medium text-on-surface mb-1">Store Name</label>
+              <label className="block font-medium text-on-surface mb-1">
+                Store Name
+              </label>
               <input
                 type="text"
                 required
@@ -120,7 +128,9 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
             </div>
 
             <div>
-              <label className="block font-medium text-on-surface mb-1">Store Handle</label>
+              <label className="block font-medium text-on-surface mb-1">
+                Store Handle
+              </label>
               <input
                 type="text"
                 required
@@ -132,7 +142,9 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
           </div>
 
           <div>
-            <label className="block font-medium text-on-surface mb-1">Short Tagline</label>
+            <label className="block font-medium text-on-surface mb-1">
+              Short Tagline
+            </label>
             <input
               type="text"
               value={form.tagline}
@@ -142,11 +154,15 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
           </div>
 
           <div>
-            <label className="block font-medium text-on-surface mb-1">Store Description</label>
+            <label className="block font-medium text-on-surface mb-1">
+              Store Description
+            </label>
             <textarea
               rows={4}
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               className="w-full p-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface leading-relaxed focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
@@ -155,14 +171,18 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
         {/* Contact Information & Address */}
         <section className="xl:col-span-5 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 space-y-4">
           <div className="pb-3 border-b border-outline-variant/40">
-            <h3 className="text-base font-bold text-on-surface">Contact & Store Address</h3>
+            <h3 className="text-base font-bold text-on-surface">
+              Contact & Store Address
+            </h3>
             <p className="text-xs text-on-surface-variant mt-0.5">
               Used for courier pickups, returns, and buyer inquiries
             </p>
           </div>
 
           <div>
-            <label className="block font-medium text-on-surface mb-1">Support Email</label>
+            <label className="block font-medium text-on-surface mb-1">
+              Support Email
+            </label>
             <input
               type="email"
               required
@@ -174,7 +194,9 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-medium text-on-surface mb-1">Contact Phone</label>
+              <label className="block font-medium text-on-surface mb-1">
+                Contact Phone
+              </label>
               <input
                 type="tel"
                 required
@@ -185,18 +207,24 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
             </div>
 
             <div>
-              <label className="block font-medium text-on-surface mb-1">Operating Hours</label>
+              <label className="block font-medium text-on-surface mb-1">
+                Operating Hours
+              </label>
               <input
                 type="text"
                 value={form.supportHours}
-                onChange={(e) => setForm({ ...form, supportHours: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, supportHours: e.target.value })
+                }
                 className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-medium text-on-surface mb-1">Street Address</label>
+            <label className="block font-medium text-on-surface mb-1">
+              Street Address
+            </label>
             <input
               type="text"
               required
@@ -208,7 +236,9 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block font-medium text-on-surface mb-1">City</label>
+              <label className="block font-medium text-on-surface mb-1">
+                City
+              </label>
               <input
                 type="text"
                 required
@@ -218,12 +248,16 @@ export const MerchantStoreProfileView = ({ profile, onSaveProfile }) => {
               />
             </div>
             <div>
-              <label className="block font-medium text-on-surface mb-1">Postal Code</label>
+              <label className="block font-medium text-on-surface mb-1">
+                Postal Code
+              </label>
               <input
                 type="text"
                 required
                 value={form.postalCode}
-                onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, postalCode: e.target.value })
+                }
                 className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>

@@ -1,4 +1,3 @@
-import React from "react";
 import TrustStrip from "../../components/Home/TrustStrip";
 // import CategoryGrid from '../../components/Home/CategoryGrid';
 // import FlashDeals from '../../components/Home/FlashDeals';

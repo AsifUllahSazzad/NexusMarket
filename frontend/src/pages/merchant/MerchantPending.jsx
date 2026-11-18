@@ -2,15 +2,39 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 export const MerchantPending = ({ application }) => {
-  // Error
+  function formatSubmittedAt(iso, timeZone = "Asia/Dhaka") {
+    if (!iso) {
+      return "Date unavailable";
+    }
 
+    const d = new Date(iso);
 
-  
+    if (Number.isNaN(d.getTime())) {
+      return "Date unavailable";
+    }
+
+    const date = new Intl.DateTimeFormat("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone,
+    }).format(d);
+
+    const time = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone,
+    }).format(d);
+
+    return `${date} || ${time}`;
+  }
+
+  const navigate = useNavigate();
+
   const [supportNotice, setSupportNotice] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(
-    23 * 3600 + 48 * 60 + 15,
-  );
 
   const formatClockTime = (date) =>
     date.toLocaleTimeString([], {
@@ -23,18 +47,48 @@ export const MerchantPending = ({ application }) => {
     formatClockTime(new Date()),
   );
 
+  // Remaining time set
+  const REVIEW_DURATION = 48 * 60 * 60 * 1000;
+
+  const calculateRemainingSeconds = () => {
+    const submittedAt = new Date(application?.submitted_at).getTime();
+
+    if (!Number.isFinite(submittedAt)) {
+      return null;
+    }
+
+    const deadline = submittedAt + REVIEW_DURATION;
+
+    return Math.max(0, Math.floor((deadline - Date.now()) / 1000));
+  };
+
+  const [remainingSeconds, setRemainingSeconds] = useState(() =>
+    calculateRemainingSeconds(),
+  );
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+    const updateCountdown = () => {
+      setRemainingSeconds(calculateRemainingSeconds());
+    };
+
+    updateCountdown();
+
+    const timer = setInterval(updateCountdown, 1000);
+
     return () => clearInterval(timer);
-  }, []);
+  }, [application.submitted_at]);
 
   const formatCountdown = (totalSecs) => {
+    if (totalSecs === null || !Number.isFinite(totalSecs)) {
+      return "Time unavailable";
+    }
+
     const hrs = Math.floor(totalSecs / 3600);
     const mins = Math.floor((totalSecs % 3600) / 60);
     const secs = totalSecs % 60;
+
     const pad = (n) => String(n).padStart(2, "0");
+
     return `${pad(hrs)}h : ${pad(mins)}m : ${pad(secs)}s`;
   };
 
@@ -46,7 +100,7 @@ export const MerchantPending = ({ application }) => {
       setLastCheckedAt(checkedTime);
       setIsRefreshing(false);
       setSupportNotice(
-        `Status refreshed at ${checkedTime} — Ref #${application.applicationId || "APP-2026-8412"} is actively in Stage 2 (Commercial Compliance Vetting).`,
+        `Status refreshed at ${checkedTime} — Ref #${application.application_id} is actively in Stage 2 (Commercial Compliance Vetting).`,
       );
     }, 550);
   };
@@ -55,14 +109,14 @@ export const MerchantPending = ({ application }) => {
     {
       step: "01",
       title: "Application & Merchant Profile Submitted",
-      detail: `Business profile and contact records received for ${application.storeName || "SonicHub Official"}.`,
+      detail: `Business profile and contact records received for ${application.store_name}.`,
       timing: "Completed",
       state: "completed",
     },
     {
       step: "02",
       title: "Commercial Compliance & Trade License Vetting",
-      detail: `Cross-checking Trade License / BIN (${application.tradeLicense || "TRAD/DNCC/01928"}) with registry records.`,
+      detail: `Cross-checking Trade License / BIN (${application.trade_license}) with registry records.`,
       timing: "In Progress · 24–48h SLA",
       state: "current",
     },
@@ -84,26 +138,22 @@ export const MerchantPending = ({ application }) => {
     },
   ];
 
-  const navigate = useNavigate();
-
   return (
-    <div className="w-full max-w-[1160px] mx-auto px-gutter py-space-lg flex flex-col gap-6">
+    <div className="w-full max-w-[1380px] mx-auto px-gutter py-space-lg flex flex-col gap-6">
       {/* Top Bar */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-outline-variant/50">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs text-on-surface-variant mb-1">
             <span>NexusMarket Seller</span>
             <span aria-hidden="true">/</span>
-            <span className="truncate">
-              {application.storeName || "Merchant Studio"}
-            </span>
+            <span className="truncate">{application.store_name}</span>
             <span aria-hidden="true">/</span>
             <span className="text-on-surface font-medium">
               Application Under Review
             </span>
           </div>
           <h1 className="font-headline-lg text-2xl font-bold text-on-surface tracking-tight">
-            Application Under Review``
+            Application Under Review
           </h1>
         </div>
 
@@ -158,15 +208,10 @@ export const MerchantPending = ({ application }) => {
                   </span>
                   <span>Commercial Verification in Progress</span>
                 </span>
-                <span className="text-outline">·</span>
-                <span className="font-mono tabular-nums text-on-surface-variant">
-                  Ref #{application.applicationId || "APP-2026-8412"}
-                </span>
               </div>
 
               <h2 className="text-xl sm:text-2xl font-extrabold text-on-surface tracking-tight leading-snug">
-                We&apos;re reviewing{" "}
-                {application.storeName || "SonicHub Official"} for storefront
+                We&apos;re reviewing {application.store_name} for storefront
                 launch
               </h2>
 
@@ -267,10 +312,10 @@ export const MerchantPending = ({ application }) => {
               Store / Brand Name
             </p>
             <p className="text-sm font-bold text-on-surface mt-0.5 truncate">
-              {application.storeName || "SonicHub Official"}
+              {application.store_name}
             </p>
             <p className="text-[11px] text-outline mt-0.5 truncate">
-              Owner: {application.ownerName || "Tanvir Ahmed"}
+              Owner: {application.owner_name}
             </p>
           </div>
         </div>
@@ -284,10 +329,10 @@ export const MerchantPending = ({ application }) => {
               Primary Category
             </p>
             <p className="text-sm font-bold text-on-surface mt-0.5 truncate">
-              {application.category || "Electronics & Audio"}
+              {application.category}
             </p>
             <p className="text-[11px] text-outline mt-0.5 truncate">
-              {application.email || "merchant@nexus.market"}
+              {application.email}
             </p>
           </div>
         </div>
@@ -301,10 +346,10 @@ export const MerchantPending = ({ application }) => {
               Trade License / BIN
             </p>
             <p className="text-sm font-bold text-on-surface font-mono tabular-nums mt-0.5 truncate">
-              {application.tradeLicense || "TRAD/DNCC/01928"}
+              {application.trade_license}
             </p>
             <p className="text-[11px] text-outline mt-0.5 font-mono tabular-nums truncate">
-              {application.phone || "+880 1712 000000"}
+              {application.phone}
             </p>
           </div>
         </div>
@@ -321,7 +366,7 @@ export const MerchantPending = ({ application }) => {
               24–48 Hours
             </p>
             <p className="text-[11px] text-outline mt-0.5 truncate">
-              Submitted: {application.submittedAt || "14 Nov 2026"}
+              Submitted: {formatSubmittedAt(application.submitted_at)}
             </p>
           </div>
         </div>
@@ -431,7 +476,7 @@ export const MerchantPending = ({ application }) => {
                 <p className="text-on-surface-variant mt-0.5 leading-relaxed">
                   Email & SMS notification dispatched to{" "}
                   <span className="font-medium text-on-surface">
-                    {application.email || "merchant@nexus.market"}
+                    {application.email}
                   </span>{" "}
                   immediately after compliance sign-off.
                 </p>
@@ -474,7 +519,7 @@ export const MerchantPending = ({ application }) => {
               type="button"
               onClick={() =>
                 setSupportNotice(
-                  `Priority verification inquiry sent for #${application.applicationId || "APP-2026-8412"}. Our onboarding desk replies within 4 business hours.`,
+                  `Priority verification inquiry sent for #${application.application_id}. Our onboarding desk replies within 4 business hours.`,
                 )
               }
               className="w-full py-2.5 px-4 rounded-xl border border-outline-variant/70 hover:border-primary hover:bg-surface-container-low text-on-surface font-semibold transition-colors cursor-pointer flex items-center justify-center gap-2"
