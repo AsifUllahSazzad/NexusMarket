@@ -1,6 +1,10 @@
 import bcrypt from "bcrypt";
 import pool from "../config/db.js";
-import { createMerchantApplication } from "../models/merchantApplicationModel.js";
+import jwt from "jsonwebtoken";
+import {
+  createMerchantApplication,
+  resubmitMerchantApplication,
+} from "../models/merchantApplicationModel.js";
 import { getMerchantApplicationByUserId } from "../models/merchantApplicationModel.js";
 
 // Register Merchant
@@ -50,15 +54,27 @@ export const registerMerchant = async (req, res, next) => {
       passwordHash,
     );
 
+    const token = jwt.sign(
+      {
+        role: result.user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        subject: String(result.user.id),
+        expiresIn: "3h",
+      },
+    );
+
     // Save both inserts
     await client.query("COMMIT");
     transactionStarted = false;
 
     return res.status(201).json({
       success: true,
-      message:
-        "Merchant registered successfully. Your application is pending admin review.",
-      data: result,
+      message: "Merchant application submitted successfully.",
+      token,
+      user: result.user,
+      application: result.application,
     });
   } catch (error) {
     if (client && transactionStarted) {
@@ -90,8 +106,6 @@ export const getMyMerchantApplication = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    console.log(userId);
-
     const application = await getMerchantApplicationByUserId(userId, pool);
 
     if (!application) {
@@ -112,5 +126,65 @@ export const getMyMerchantApplication = async (req, res) => {
       success: false,
       message: "Internal server error.",
     });
+  }
+};
+
+// Resubmit Merchant Application
+export const resubmitMerchantApplicationController = async (req, res, next) => {
+  try {
+    // 1. Get authenticated user's ID
+    const userId = req.user.id;
+
+    // 2. Get application ID from URL
+    const { applicationId } = req.params;
+
+    // 3. Get submitted form data
+    const {
+      ownerName,
+      storeName,
+      category,
+      tradeLicense,
+      phone,
+      complianceNote,
+    } = req.body;
+
+    // 4. Basic validation
+    if (!ownerName || !storeName || !category || !tradeLicense || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required.",
+      });
+    }
+
+    if (
+      !Number.isSafeInteger(Number(applicationId)) ||
+      Number(applicationId) <= 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application ID.",
+      });
+    }
+
+    // 5. Call model
+    const result = await resubmitMerchantApplication(userId, applicationId, pool, {
+      ownerName,
+      storeName,
+      category,
+      tradeLicense,
+      phone,
+      complianceNote,
+    });
+
+    // 6. Send successful response
+    return res.status(200).json({
+      success: true,
+      message: "Merchant application resubmitted successfully.",
+      application: result.application,
+      version: result.version,
+    });
+  } catch (error) {
+    console.error("Merchant resubmission error:", error);
+    next(error);
   }
 };

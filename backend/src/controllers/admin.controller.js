@@ -1,12 +1,12 @@
-import { findAdminById } from "../models/adminModel.js";
 import pool from "../config/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
-  getPendingApplications,
   approveMerchantApplication,
+  findAdminById,
+  getPendingApplications,
   rejectMerchantApplication,
-} from "../models/merchantApplicationModel.js";
+} from "../models/adminModel.js";
 
 // Get admin profile
 export async function getAdminProfile(req, res, next) {
@@ -76,23 +76,28 @@ export const approveApplicationController = async (req, res, next) => {
 
 // Reject application
 export const rejectApplicationController = async (req, res, next) => {
-  try {
-    const { applicationId } = req.params;
-    const { reason } = req.body;
+  const { applicationId } = req.params;
 
-    if (typeof reason !== "string" || !reason.trim()) {
-      return res.status(400).json({
+  const reason = req.body?.reason;
+
+  const rejectionReason =
+    typeof reason === "string" && reason.trim()
+      ? reason.trim()
+      : "Submitted Trade License / BIN code could not be matched with active commercial registry records, or the business owner contact details could not be verified.";
+
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({
         success: false,
-        message: "Rejection reason is required.",
+        message: "Admin authentication required.",
       });
     }
-    console.log(req.user.id);
 
     const application = await rejectMerchantApplication(
       pool,
       applicationId,
       req.user.id,
-      reason.trim(),
+      rejectionReason,
     );
 
     if (!application) {
@@ -108,6 +113,7 @@ export const rejectApplicationController = async (req, res, next) => {
       data: application,
     });
   } catch (error) {
+    console.error("Reject Application Error:", error);
     next(error);
   }
 };

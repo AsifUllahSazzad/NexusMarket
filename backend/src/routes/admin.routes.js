@@ -19,7 +19,7 @@ const router = Router();
 // Admin Profile
 router.get("/profile", authenticateToken, requireAdmin, getAdminProfile);
 
-// View pending applications
+// View merchant pending applications
 router.get(
   "/merchant-applications",
   authenticateToken,
@@ -44,6 +44,6 @@ router.patch(
 );
 
 // Admin login
-router.post("/login", loginAdminProfile)
+router.post("/login", loginAdminProfile);
 
 export default router;
