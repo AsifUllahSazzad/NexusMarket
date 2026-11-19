@@ -5,6 +5,7 @@ import Register from "../pages/auth/Register";
 import Login from "../pages/auth/Login";
 import MerchantDashboardScreen from "../merchant/MerchantDashboardScreen";
 import MerchantApplicationStatus from "../merchant/MerchantApplicationStatus";
+import { merchantDashboardLoader } from "../merchant/merchantDashboardLoader";
 
 const router = createBrowserRouter([
   {
@@ -23,12 +24,13 @@ const router = createBrowserRouter([
         element: <Login />,
       },
       {
-        path: "/merchant/dashboard",
-        element: <MerchantDashboardScreen/>
+        path: "/merchant/application-status",
+        element: <MerchantApplicationStatus />,
       },
       {
-        path: "/merchant/application-status",
-        element: <MerchantApplicationStatus/>
+        path: "/merchant/dashboard",
+        element: <MerchantDashboardScreen />,
+        loader: merchantDashboardLoader,
       },
     ],
   },

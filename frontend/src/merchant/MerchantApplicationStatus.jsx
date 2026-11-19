@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { MerchantPending } from "../pages/merchant/MerchantPending";
 import { MerchantRejected } from "../pages/merchant/MerchantRejected";
-import MerchantDashboardScreen from "./MerchantDashboardScreen";
+import { useNavigate } from "react-router";
 
 const MerchantApplicationStatus = () => {
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   // Fetch merchant data
   useEffect(() => {
@@ -56,6 +58,13 @@ const MerchantApplicationStatus = () => {
     fetchApplication();
   }, []);
 
+  // Merchant Status Approved
+  useEffect(() => {
+    if (application?.status === "approved") {
+      navigate("/merchant/dashboard", { replace: true });
+    }
+  }, [application, navigate]);
+
   // Resubmit application
   const handleResubmit = async (payload) => {
     const token = localStorage.getItem("token");
@@ -77,7 +86,7 @@ const MerchantApplicationStatus = () => {
     );
 
     const data = await response.json().catch(() => ({}));
-    console.log(response);
+    // console.log(response);
 
     if (!response.ok) {
       throw new Error(data.message || "Application resubmission failed.");
@@ -127,20 +136,15 @@ const MerchantApplicationStatus = () => {
   }
 
   // 4. Pending application
-  if (application.status === "pending") {
+  if (application?.status === "pending") {
     return <MerchantPending application={application} />;
   }
 
   // 5. Rejected application
-  if (application.status === "rejected") {
+  if (application?.status === "rejected") {
     return (
       <MerchantRejected application={application} onResubmit={handleResubmit} />
     );
-  }
-
-  // 6. Approved or unexpected status
-  if (application.status === "approved") {
-    return <MerchantDashboardScreen />;
   }
 
   return <p>Unknown application status.</p>;

@@ -47,6 +47,7 @@ const Login = () => {
             navigate("/merchant/application-status");
           } else {
             navigate("/merchant/dashboard");
+            // navigate("/merchant/application-status");
           }
         } else {
           navigate("/");

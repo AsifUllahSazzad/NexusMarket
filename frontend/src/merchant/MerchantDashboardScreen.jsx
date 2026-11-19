@@ -7,12 +7,17 @@ import { MerchantEarningsView } from "../components/screen/merchant/MerchantEarn
 import { MerchantStoreProfileView } from "../components/screen/merchant/MerchantStoreProfileView";
 import { MerchantReviewsView } from "../components/screen/merchant/MerchantReviewsView";
 import { MerchantSettingsView } from "../components/screen/merchant/MerchantSettingsView";
+import { useLoaderData } from "react-router";
 
 const MerchantDashboardScreen = ({
   onNavigate = () => {},
   currency = "BDT",
   formatPrice = (bdt) => `৳${Number(bdt || 0).toLocaleString()}`,
 }) => {
+  const {application} = useLoaderData();
+
+  // console.log("Merchant Dashboard--->", application);
+
   const {
     store,
     kpisByPeriod,
@@ -158,6 +163,7 @@ const MerchantDashboardScreen = ({
     e.target.value = "";
   };
 
+  // Add Product
   const handleAddProduct = (e) => {
     e.preventDefault();
     const price = Number(newProduct.priceBDT) || 1500;
