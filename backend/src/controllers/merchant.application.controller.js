@@ -108,6 +108,7 @@ export const getMyMerchantApplication = async (req, res) => {
 
     const application = await getMerchantApplicationByUserId(userId, pool);
 
+
     if (!application) {
       return res.status(404).json({
         success: false,

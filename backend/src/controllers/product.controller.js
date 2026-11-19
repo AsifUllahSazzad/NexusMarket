@@ -27,9 +27,9 @@ export const createProductController = async (req, res, next) => {
       imageUrl: imageUrl,
       description: typeof description === "string" ? description.trim() : null,
       category: category.trim(),
-      price: productPrice,
+      price: price,
       stockQuantity: Number(stockQuantity),
-      status: productStatus,
+      status: status,
     });
 
     return res.status(201).json({

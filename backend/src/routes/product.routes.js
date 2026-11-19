@@ -8,6 +8,7 @@ import {
   getMerchantProductByIdController,
   getMerchantProductsController,
 } from "../controllers/product.controller.js";
+import { createProductValidator } from "../validators/productValidator.js";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ const router = Router();
 router.use(authenticateToken, requireApprovedMerchant);
 
 // Create product
-router.post("/", createProductController);
+router.post("/", createProductValidator, createProductController);
 
 // Get all products belonging to logged-in merchant
 router.get("/", getMerchantProductsController);
