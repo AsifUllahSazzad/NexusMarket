@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import axios from "axios";
 import { MERCHANT_DASHBOARD_DATA } from "./merchantData";
 import { MerchantProductsView } from "../components/screen/merchant/MerchantProductsView";
 import { MerchantOrdersView } from "../components/screen/merchant/MerchantOrdersView";
@@ -13,11 +14,11 @@ const MerchantDashboardScreen = ({
   onNavigate = () => {},
   currency = "BDT",
   formatPrice = (bdt) => `৳${Number(bdt || 0).toLocaleString()}`,
+  applicationStatus = "approved",
+  onApplicationStatusChange = () => {},
+  merchantApplication = {},
+  onResubmitApplication = () => {},
 }) => {
-  const {application} = useLoaderData();
-
-  // console.log("Merchant Dashboard--->", application);
-
   const {
     store,
     kpisByPeriod,
@@ -42,6 +43,9 @@ const MerchantDashboardScreen = ({
   );
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProductImageError, setNewProductImageError] = useState(false);
+  const [productErrors, setProductErrors] = useState({});
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
+  const [productSubmitError, setProductSubmitError] = useState("");
   const [newProduct, setNewProduct] = useState({
     name: "",
     sku: "",
@@ -152,52 +156,260 @@ const MerchantDashboardScreen = ({
   const handleNewProductImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setProductErrors((prev) => ({
+        ...prev,
+        imageUrl: "Please select a valid image file (PNG, JPG, WebP, or GIF).",
+      }));
+      e.target.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
         setNewProduct((prev) => ({ ...prev, imageUrl: reader.result }));
         setNewProductImageError(false);
+        setProductErrors((prev) => ({ ...prev, imageUrl: undefined }));
+        setProductSubmitError("");
       }
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
-  // Add Product
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    const price = Number(newProduct.priceBDT) || 1500;
-    const stock = Math.max(0, Number(newProduct.stock) || 10);
-    const created = {
-      id: `prod-${Date.now()}`,
-      name: newProduct.name.trim(),
-      sku:
-        newProduct.sku.trim().toUpperCase() ||
-        `NX-${Math.floor(1000 + Math.random() * 9000)}`,
-      category: newProduct.category,
-      priceBDT: price,
-      stock,
-      sold30d: 0,
-      status:
-        stock === 0 ? "Out of Stock" : stock <= 10 ? "Low Stock" : "In Stock",
-      listingStatus: newProduct.listingStatus || "Active",
-      imageUrl: newProduct.imageUrl.trim(),
-      description: newProduct.description.trim(),
-    };
-    setProducts((prev) => [created, ...prev]);
-    setNewProduct({
-      name: "",
-      sku: "",
-      category: "Audio Tech",
-      priceBDT: "",
-      stock: "",
-      listingStatus: "Active",
-      imageUrl: "",
-      description: "",
-    });
+  const updateNewProductField = (field, value) => {
+    setNewProduct((prev) => ({ ...prev, [field]: value }));
+    if (productErrors[field]) {
+      setProductErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+    if (productSubmitError) {
+      setProductSubmitError("");
+    }
+  };
+
+  const handleOpenAddProductModal = () => {
+    setProductErrors({});
+    setProductSubmitError("");
+    setNewProductImageError(false);
+    setIsAddProductOpen(true);
+  };
+
+  const handleCloseAddProductModal = () => {
+    setProductErrors({});
+    setProductSubmitError("");
     setNewProductImageError(false);
     setIsAddProductOpen(false);
-    setBannerMessage(`Product "${created.name}" added to catalog.`);
+  };
+
+  // Product Validation
+  const validateProduct = (product) => {
+    const errors = {};
+    const trimmedName = product.name.trim();
+    const sku = product.sku.trim();
+    const rawPrice = String(product.priceBDT).trim();
+    const price = Number(rawPrice);
+    const rawStock = String(product.stock).trim();
+    const stock = Number(rawStock);
+    const imageUrl = product.imageUrl.trim();
+    const description = product.description.trim();
+
+    if (!trimmedName) {
+      errors.name = "Product title is required";
+    } else if (trimmedName.length < 3) {
+      errors.name = "Product title must be at least 3 characters";
+    } else if (trimmedName.length > 150) {
+      errors.name = "Product title cannot exceed 150 characters";
+    }
+
+    if (!sku) {
+      errors.sku = "SKU code is required";
+    } else if (sku.length < 3 || sku.length > 50) {
+      errors.sku = "SKU must be between 3 and 50 characters";
+    } else if (!/^[A-Za-z0-9_-]+$/.test(sku)) {
+      errors.sku = "Use only letters, numbers, hyphens (-), or underscores (_)";
+    } else if (
+      products.some((p) => p.sku.toLowerCase() === sku.toLowerCase())
+    ) {
+      errors.sku = `SKU "${sku.toUpperCase()}" already exists in your catalog`;
+    }
+
+    if (rawPrice === "") {
+      errors.priceBDT = "Price is required";
+    } else if (!Number.isFinite(price) || price <= 0) {
+      errors.priceBDT = "Enter a price greater than 0";
+    }
+
+    if (rawStock === "") {
+      errors.stock = "Stock count is required";
+    } else if (!Number.isInteger(stock) || stock < 0) {
+      errors.stock = "Enter a whole number of 0 or more";
+    }
+
+    if (!imageUrl.trim()) {
+      errors.imageUrl = "Image link is required";
+    }
+
+    if (imageUrl) {
+      const isDataImage =
+        /^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,/i.test(imageUrl);
+      let isValidUrl = false;
+      try {
+        const parsed = new URL(imageUrl);
+        isValidUrl = ["http:", "https:"].includes(parsed.protocol);
+      } catch {
+        isValidUrl = false;
+      }
+
+      if (!isValidUrl && !isDataImage) {
+        errors.imageUrl =
+          "Enter a valid HTTP/HTTPS image URL or upload a picture";
+      } else if (newProductImageError) {
+        errors.imageUrl =
+          "Could not load image from this URL. Check the link or upload a file";
+      }
+    }
+
+    if (!description) {
+      errors.description = "Product description is required.";
+    } else if (description.length < 10) {
+      errors.description = `Add at least ${10 - description.length} more character${10 - description.length === 1 ? "" : "s"} (min. 10)`;
+    } else if (description.length > 2000) {
+      errors.description = "Description cannot exceed 2000 characters";
+    }
+
+    return errors;
+  };
+
+  const handleAddProduct = async (e) => {
+    e.preventDefault();
+
+    // Frontend validation
+    const errors = validateProduct(newProduct);
+    setProductErrors(errors);
+
+    const errorCount = Object.keys(errors).length;
+    if (errorCount > 0) {
+      setProductSubmitError(
+        `Please fix the ${errorCount} highlighted field${errorCount === 1 ? "" : "s"} above before saving.`,
+      );
+      return;
+    }
+
+    // Get authentication token
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setBannerMessage("Your session has expired. Please log in again.");
+      return;
+    }
+
+    // Prepare backend payload
+    const payload = {
+      productName: newProduct.name.trim(),
+      imageUrl: newProduct.imageUrl.trim(),
+      sku: newProduct.sku.trim().toUpperCase(),
+      category: newProduct.category,
+      price: Number(newProduct.priceBDT),
+      stockQuantity: Number(newProduct.stock),
+      status: newProduct.listingStatus.toLowerCase(),
+      description: newProduct.description.trim(),
+    };
+
+
+    try {
+      setIsSubmittingProduct(true);
+      setBannerMessage("");
+
+      // Send data to backend
+      const response = await axios.post(
+        "http://localhost:3000/api/merchant/products",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("After Data Send");
+
+      // Read the created product from backend response
+      const apiProduct = response.data?.product ?? response.data?.data;
+
+      console.log("ApiProduct", apiProduct);
+
+      if (!apiProduct) {
+        throw new Error(
+          "Product was created, but the response is missing product data.",
+        );
+      }
+
+      // Map backend data to your existing dashboard UI format
+      const createdProduct = {
+        id: apiProduct.id ?? apiProduct.product_id,
+        name: apiProduct.product_name ?? payload.productName,
+        sku: apiProduct.sku ?? payload.sku,
+        category: apiProduct.category ?? payload.category,
+
+        priceBDT: Number(apiProduct.price ?? payload.price),
+        stock: Number(apiProduct.stock_quantity ?? payload.stockQuantity),
+
+        sold30d: Number(apiProduct.sold_30d ?? apiProduct.sold30d ?? 0),
+
+        status:
+          Number(apiProduct.stock ?? payload.stock) === 0
+            ? "Out of Stock"
+            : Number(apiProduct.stock ?? payload.stock) <= 10
+              ? "Low Stock"
+              : "In Stock",
+
+        listingStatus:
+          (apiProduct.status ?? payload.status).toLowerCase() === "draft"
+            ? "Draft"
+            : "Active",
+
+        imageUrl: apiProduct.image_url ?? payload.imageUrl,
+        description: apiProduct.description ?? payload.description,
+      };
+
+      // Update UI only after successful backend creation
+      setProducts((prev) => [createdProduct, ...prev]);
+
+      // Reset form
+      // setNewProduct({
+      //   name: "",
+      //   sku: "",
+      //   category: "Audio Tech",
+      //   priceBDT: "",
+      //   stock: "",
+      //   listingStatus: "Active",
+      //   imageUrl: "",
+      //   description: "",
+      // });
+
+      setProductErrors({});
+      setNewProductImageError(false);
+      setIsAddProductOpen(false);
+
+      setBannerMessage(`Product "${createdProduct.name}" added successfully.`);
+    } catch (error) {
+      console.error(
+        "Product creation failed:",
+        error.response?.data?.message || error.message,
+      );
+      setBannerMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to create product.",
+      );
+    } finally {
+      setIsSubmittingProduct(false);
+    }
   };
 
   const handleRequestWithdrawal = ({ amountBDT, method, note }) => {
@@ -419,6 +631,27 @@ const MerchantDashboardScreen = ({
       ? chartSeries[hoveredBarIndex]
       : chartSeries[chartSeries.length - 1];
 
+  if (applicationStatus === "pending") {
+    return (
+      <MerchantPendingApplicationView
+        application={merchantApplication}
+        onStatusChange={onApplicationStatusChange}
+        onNavigate={onNavigate}
+      />
+    );
+  }
+
+  if (applicationStatus === "rejected") {
+    return (
+      <MerchantRejectedApplicationView
+        application={merchantApplication}
+        onStatusChange={onApplicationStatusChange}
+        onResubmit={onResubmitApplication}
+        onNavigate={onNavigate}
+      />
+    );
+  }
+
   return (
     <div className="w-full max-w-[1440px] mx-auto px-gutter py-space-lg">
       <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -536,6 +769,31 @@ const MerchantDashboardScreen = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <div
+                className="flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant/50 rounded-xl text-xs"
+                role="group"
+                aria-label="Application status preview"
+              >
+                {[
+                  { id: "approved", label: "Approved" },
+                  { id: "pending", label: "Pending" },
+                  { id: "rejected", label: "Rejected" },
+                ].map((st) => (
+                  <button
+                    key={st.id}
+                    type="button"
+                    onClick={() => onApplicationStatusChange(st.id)}
+                    className={`px-2.5 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                      applicationStatus === st.id
+                        ? "bg-surface-container-lowest text-on-surface shadow-xs font-semibold"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+
               {activeNav === "dashboard" && (
                 <div className="flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant/50 rounded-xl">
                   {["7d", "30d", "12m"].map((key) => (
@@ -578,7 +836,7 @@ const MerchantDashboardScreen = ({
               {(activeNav === "dashboard" || activeNav === "products") && (
                 <button
                   type="button"
-                  onClick={() => setIsAddProductOpen(true)}
+                  onClick={handleOpenAddProductModal}
                   className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-base">
@@ -1076,7 +1334,7 @@ const MerchantDashboardScreen = ({
           {activeNav === "products" && (
             <MerchantProductsView
               products={products}
-              onOpenAddModal={() => setIsAddProductOpen(true)}
+              onOpenAddModal={handleOpenAddProductModal}
               onEditProduct={handleEditProduct}
               onDeleteProduct={handleDeleteProduct}
               onAdjustStock={handleAdjustStock}
@@ -1253,20 +1511,26 @@ const MerchantDashboardScreen = ({
       {isAddProductOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setIsAddProductOpen(false)}
+          onClick={handleCloseAddProductModal}
         >
           <form
+            noValidate
             onSubmit={handleAddProduct}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-xl space-y-4 text-xs"
           >
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant/40">
-              <h3 className="text-base font-bold text-on-surface">
-                Add New Product
-              </h3>
+              <div>
+                <h3 className="text-base font-bold text-on-surface">
+                  Add New Product
+                </h3>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">
+                  Publish a new SKU to your verified storefront catalog
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() => setIsAddProductOpen(false)}
+                onClick={handleCloseAddProductModal}
                 className="w-8 h-8 rounded-lg hover:bg-surface-container-low text-on-surface-variant flex items-center justify-center cursor-pointer"
                 aria-label="Close modal"
               >
@@ -1276,18 +1540,31 @@ const MerchantDashboardScreen = ({
 
             <div>
               <label className="block font-medium text-on-surface mb-1">
-                Product Title
+                Product Title <span className="text-error">*</span>
               </label>
               <input
                 type="text"
-                required
                 value={newProduct.name}
-                onChange={(e) =>
-                  setNewProduct({ ...newProduct, name: e.target.value })
-                }
+                aria-invalid={Boolean(productErrors.name)}
+                onChange={(e) => updateNewProductField("name", e.target.value)}
                 placeholder="e.g. Studio Monitor Arm Pro"
-                className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                className={`w-full h-10 px-3 rounded-xl text-on-surface focus:outline-none focus:ring-1 transition-colors border ${
+                  productErrors.name
+                    ? "bg-error/[0.04] border-error focus:ring-error"
+                    : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                }`}
               />
+              {productErrors.name && (
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
+                  <span>{productErrors.name}</span>
+                </p>
+              )}
             </div>
 
             {/* Product Image Link or Upload */}
@@ -1300,7 +1577,7 @@ const MerchantDashboardScreen = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setNewProduct({ ...newProduct, imageUrl: "" });
+                      updateNewProductField("imageUrl", "");
                       setNewProductImageError(false);
                     }}
                     className="text-[11px] font-medium text-error hover:underline cursor-pointer"
@@ -1311,7 +1588,13 @@ const MerchantDashboardScreen = ({
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-20 h-20 rounded-xl border border-outline-variant/60 bg-surface-container-low overflow-hidden shrink-0 flex items-center justify-center">
+                <div
+                  className={`w-20 h-20 rounded-xl border bg-surface-container-low overflow-hidden shrink-0 flex items-center justify-center ${
+                    productErrors.imageUrl || newProductImageError
+                      ? "border-error/70"
+                      : "border-outline-variant/60"
+                  }`}
+                >
                   {newProduct.imageUrl && !newProductImageError ? (
                     <img
                       src={newProduct.imageUrl}
@@ -1321,7 +1604,11 @@ const MerchantDashboardScreen = ({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="material-symbols-outlined text-2xl text-outline">
+                    <span
+                      className={`material-symbols-outlined text-2xl ${
+                        newProductImageError ? "text-error" : "text-outline"
+                      }`}
+                    >
                       {newProductImageError
                         ? "broken_image"
                         : "add_photo_alternate"}
@@ -1334,15 +1621,17 @@ const MerchantDashboardScreen = ({
                     type="text"
                     inputMode="url"
                     value={newProduct.imageUrl}
+                    aria-invalid={Boolean(productErrors.imageUrl)}
                     onChange={(e) => {
-                      setNewProduct({
-                        ...newProduct,
-                        imageUrl: e.target.value,
-                      });
+                      updateNewProductField("imageUrl", e.target.value);
                       setNewProductImageError(false);
                     }}
                     placeholder="https://example.com/product.jpg"
-                    className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                    className={`w-full h-10 px-3 rounded-xl text-on-surface focus:outline-none focus:ring-1 transition-colors border ${
+                      productErrors.imageUrl
+                        ? "bg-error/[0.04] border-error focus:ring-error"
+                        : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                    }`}
                   />
 
                   <div className="flex items-center gap-2">
@@ -1358,30 +1647,62 @@ const MerchantDashboardScreen = ({
                         className="sr-only"
                       />
                     </label>
-                    <span className="text-[11px] text-on-surface-variant truncate">
+                    <span
+                      className={`text-[11px] truncate ${
+                        newProductImageError
+                          ? "text-error font-medium"
+                          : "text-on-surface-variant"
+                      }`}
+                    >
                       {newProductImageError
-                        ? "Could not load image URL"
+                        ? "Image preview failed to load"
                         : "Paste image link or pick from device"}
                     </span>
                   </div>
                 </div>
               </div>
+
+              {productErrors.imageUrl && (
+                <p
+                  role="alert"
+                  className="mt-1 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
+                  <span>{productErrors.imageUrl}</span>
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  SKU Code
+                  SKU Code <span className="text-error">*</span>
                 </label>
                 <input
                   type="text"
                   value={newProduct.sku}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, sku: e.target.value })
-                  }
+                  aria-invalid={Boolean(productErrors.sku)}
+                  onChange={(e) => updateNewProductField("sku", e.target.value)}
                   placeholder="SH-ARM-01"
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                  className={`w-full h-10 px-3 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 transition-colors border ${
+                    productErrors.sku
+                      ? "bg-error/[0.04] border-error focus:ring-error"
+                      : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                  }`}
                 />
+                {productErrors.sku && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 flex items-start gap-1 text-[11px] font-medium text-error leading-snug"
+                  >
+                    <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                      error
+                    </span>
+                    <span>{productErrors.sku}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-medium text-on-surface mb-1">
@@ -1390,9 +1711,9 @@ const MerchantDashboardScreen = ({
                 <select
                   value={newProduct.category}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, category: e.target.value })
+                    updateNewProductField("category", e.target.value)
                   }
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                 >
                   <option>Audio Tech</option>
                   <option>Computing</option>
@@ -1403,38 +1724,66 @@ const MerchantDashboardScreen = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 items-start">
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  Price (BDT)
+                  Price (BDT) <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
-                  min="1"
-                  required
                   value={newProduct.priceBDT}
+                  aria-invalid={Boolean(productErrors.priceBDT)}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, priceBDT: e.target.value })
+                    updateNewProductField("priceBDT", e.target.value)
                   }
                   placeholder="3200"
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
+                  className={`w-full h-10 px-3 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 transition-colors border ${
+                    productErrors.priceBDT
+                      ? "bg-error/[0.04] border-error focus:ring-error"
+                      : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                  }`}
                 />
+                {productErrors.priceBDT && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 flex items-start gap-1 text-[11px] font-medium text-error leading-snug"
+                  >
+                    <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                      error
+                    </span>
+                    <span>{productErrors.priceBDT}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  Initial Stock
+                  Initial Stock <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  required
                   value={newProduct.stock}
+                  aria-invalid={Boolean(productErrors.stock)}
                   onChange={(e) =>
-                    setNewProduct({ ...newProduct, stock: e.target.value })
+                    updateNewProductField("stock", e.target.value)
                   }
                   placeholder="25"
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
+                  className={`w-full h-10 px-3 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 transition-colors border ${
+                    productErrors.stock
+                      ? "bg-error/[0.04] border-error focus:ring-error"
+                      : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                  }`}
                 />
+                {productErrors.stock && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 flex items-start gap-1 text-[11px] font-medium text-error leading-snug"
+                  >
+                    <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                      error
+                    </span>
+                    <span>{productErrors.stock}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-medium text-on-surface mb-1">
@@ -1443,12 +1792,9 @@ const MerchantDashboardScreen = ({
                 <select
                   value={newProduct.listingStatus}
                   onChange={(e) =>
-                    setNewProduct({
-                      ...newProduct,
-                      listingStatus: e.target.value,
-                    })
+                    updateNewProductField("listingStatus", e.target.value)
                   }
-                  className="w-full h-10 px-2 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full h-10 px-2 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                 >
                   <option value="Active">Active</option>
                   <option value="Draft">Draft</option>
@@ -1457,33 +1803,74 @@ const MerchantDashboardScreen = ({
             </div>
 
             <div>
-              <label className="block font-medium text-on-surface mb-1">
-                Description
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-medium text-on-surface">
+                  Description <span className="text-error">*</span>
+                </label>
+                <span className="text-[11px] font-mono tabular-nums text-outline">
+                  {newProduct.description.trim().length}/2000
+                </span>
+              </div>
               <textarea
-                rows={2}
+                rows={3}
                 value={newProduct.description}
+                aria-invalid={Boolean(productErrors.description)}
                 onChange={(e) =>
-                  setNewProduct({ ...newProduct, description: e.target.value })
+                  updateNewProductField("description", e.target.value)
                 }
                 placeholder="Key specifications and warranty highlights..."
-                className="w-full p-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                className={`w-full p-3 rounded-xl text-on-surface focus:outline-none focus:ring-1 transition-colors border ${
+                  productErrors.description
+                    ? "bg-error/[0.04] border-error focus:ring-error"
+                    : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                }`}
               />
+              {productErrors.description && (
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
+                  <span>{productErrors.description}</span>
+                </p>
+              )}
             </div>
 
-            <div className="pt-2 flex items-center justify-end gap-2">
+            {productSubmitError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl border border-error/35 bg-error/[0.08] text-error"
+              >
+                <span className="material-symbols-outlined text-base shrink-0 mt-0.5">
+                  error
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-xs">
+                    Unable to save product
+                  </p>
+                  <p className="text-[11px] mt-0.5 leading-snug">
+                    {productSubmitError}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-outline-variant/40 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setIsAddProductOpen(false)}
+                onClick={handleCloseAddProductModal}
                 className="px-4 py-2 rounded-xl border border-outline-variant/70 font-medium text-on-surface hover:bg-surface-container-low cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-semibold cursor-pointer"
+                disabled={isSubmittingProduct}
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save Product
+                {isSubmittingProduct ? "Saving Product..." : "Save Product"}
               </button>
             </div>
           </form>
