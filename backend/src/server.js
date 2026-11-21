@@ -55,7 +55,7 @@ app.use("/api/merchant", merchantRoute);
 
 // Product Route
 import productRoute from "./routes/product.routes.js";
-app.use("/api/products", productRoute);
+app.use("/api/merchant/products", productRoute);
 
 // Error handle
 import { errorHandler } from "./middleware/error.middleware.js";

@@ -15,8 +15,10 @@ const router = Router();
 // All product-management routes require an approved merchant
 router.use(authenticateToken, requireApprovedMerchant);
 
+
 // Create product
 router.post("/", createProductValidator, createProductController);
+// console.log("Problems....")
 
 // Get all products belonging to logged-in merchant
 router.get("/", getMerchantProductsController);

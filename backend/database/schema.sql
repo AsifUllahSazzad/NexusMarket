@@ -108,7 +108,6 @@ CREATE TABLE IF NOT EXISTS products (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-
 BEGIN;
 
 ALTER TABLE users
@@ -121,8 +120,8 @@ CHECK (role IN ('buyer', 'merchant', 'admin'));
 COMMIT;
 
 
-
-
+ALTER TABLE products
+    ADD CONSTRAINT idx_products_merchant_sku UNIQUE (sku);
 
 
 

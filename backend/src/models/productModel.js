@@ -34,7 +34,7 @@ export async function createProduct(merchantId, productData) {
     productName,
     sku,
     imageUrl,
-    description || null,
+    description,
     category,
     price,
     stockQuantity,

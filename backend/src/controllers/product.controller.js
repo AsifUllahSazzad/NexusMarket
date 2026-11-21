@@ -9,17 +9,19 @@ export const createProductController = async (req, res, next) => {
   try {
     const {
       productName,
-      sku,
       imageUrl,
-      description,
+      sku,
       category,
       price,
       stockQuantity,
       status,
+      description,
     } = req.body;
 
     // Merchant ID comes from verified JWT
     const merchantId = req.user.id;
+
+    console.log("-->Before Database");
 
     const product = await createProduct(merchantId, {
       productName: productName.trim(),
@@ -32,12 +34,15 @@ export const createProductController = async (req, res, next) => {
       status: status,
     });
 
+    console.log("-->After Database");
+
     return res.status(201).json({
       success: true,
       message: "Product created successfully.",
       data: product,
     });
   } catch (error) {
+    console.log("Error Find");
     // Duplicate SKU for the same merchant
     if (
       error.code === "23505" &&
