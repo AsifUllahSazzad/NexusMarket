@@ -303,7 +303,7 @@ export const MerchantProductsView = ({
                     <td className="py-2.5 px-4 whitespace-nowrap">
                       <select
                         aria-label={`Product status for ${prod.name}`}
-                        value={prod.listingStatus || "Active"}
+                        value={(prod.listingStatus || "Active").toLowerCase()}
                         onChange={(e) =>
                           onToggleListingStatus(prod.id, e.target.value)
                         }

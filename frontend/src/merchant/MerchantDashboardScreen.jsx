@@ -183,14 +183,20 @@ const MerchantDashboardScreen = ({
     }
   };
 
-  // Update Status
+  // Update Product Listing Status
   const handleToggleListingStatus = async (productId, newStatus) => {
     try {
       const token = localStorage.getItem("token");
 
+      if (!token) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
       const response = await axios.patch(
         `http://localhost:3000/api/merchant/products/${productId}/status`,
-        { status: newStatus },
+        {
+          status: newStatus.toLowerCase(),
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -199,28 +205,36 @@ const MerchantDashboardScreen = ({
       );
 
       if (!response.data.success) {
-        throw new Error(response.data?.message);
+        throw new Error(
+          response.data.message || "Failed to update listing status.",
+        );
       }
 
-      // Update frontend only after backend confirms success
+      const updatedStatus = String(response.data.product.status).toLowerCase();
+
+      const formattedStatus =
+        updatedStatus.charAt(0).toUpperCase() + updatedStatus.slice(1);
+
+      // Update only listingStatus, not inventory status
       setProducts((previousProducts) =>
         previousProducts.map((product) =>
           String(product.id) === String(productId)
             ? {
                 ...product,
-                status: response.data.product.status,
-                listingStatus: response.data?.product.status,
+                listingStatus: formattedStatus,
               }
             : product,
         ),
       );
+
+      setBannerMessage(`Product listing status updated to ${formattedStatus}.`);
     } catch (error) {
-      console.error("Status update failed:", error);
+      console.error("Status update failed:", error.response?.data || error);
 
       alert(
         error.response?.data?.message ||
           error.message ||
-          "Failed to update product status.",
+          "Failed to update product listing status.",
       );
     }
   };
