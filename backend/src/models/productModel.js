@@ -61,7 +61,66 @@ export const getMerchantProducts = async (merchantId) => {
   return rows;
 };
 
-// Get one product belonging to a merchant
+// Update Product Status
+export const updateMerchantProductStatus = async (
+  userId,
+  productId,
+  status,
+) => {
+  const query = `
+    UPDATE products
+    SET
+      status = $1,
+      updated_at = NOW()
+    WHERE
+      id = $2
+      AND merchant_id = $3
+    RETURNING
+      id,
+      merchant_id AS "merchantId",
+      status,
+      updated_at AS "updatedAt";
+  `;
+
+  const values = [status, productId, userId];
+
+  const result = await pool.query(query, values);
+
+  return result.rows[0] || null;
+};
+
+
+// Update Product Stock
+export const updateMerchantProductStock = async (
+  userId,
+  productId,
+  change,
+) => {
+  const query = `
+    UPDATE products
+    SET
+      stock_quantity = stock_quantity + $1,
+      updated_at = NOW()
+    WHERE
+      id = $2
+      AND merchant_id = $3
+      AND stock_quantity + $1 >= 0
+    RETURNING
+      id,
+      merchant_id AS "merchantId",
+      stock_quantity AS "stockQuantity",
+      updated_at AS "updatedAt";
+  `;
+
+  const values = [change, productId, userId];
+
+  const result = await pool.query(query, values);
+
+  return result.rows[0] || null;
+};
+
+
+// Get one product belonging to a merchant -> Not use
 export const getProductById = async (productId, merchantId) => {
   const query = `
     SELECT *
