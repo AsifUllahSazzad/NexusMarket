@@ -9,13 +9,21 @@ export const MerchantProductsView = ({
   onToggleListingStatus,
   formatPrice,
   renderStatusLabel,
+  productErrors = {},
+  productSubmitError = "",
+  onClearProductError = () => {},
+  onResetProductErrors = () => {},
 }) => {
+
+  console.log("productErrors",productErrors.name)
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [editingProduct, setEditingProduct] = useState(null);
   const [editImageError, setEditImageError] = useState(false);
   const [brokenImageIds, setBrokenImageIds] = useState({});
   const [deletingProduct, setDeletingProduct] = useState(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -41,9 +49,25 @@ export const MerchantProductsView = ({
     (p) => p.stock > 0 && p.stock <= 10,
   ).length;
 
+  const updateEditField = (field, value) => {
+    setEditingProduct((prev) => (prev ? { ...prev, [field]: value } : prev));
+    onClearProductError(field);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingProduct(null);
+    setEditImageError(false);
+    onResetProductErrors();
+  };
+
   const handleEditImageUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setEditImageError(true);
+      e.target.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === "string") {
@@ -51,38 +75,34 @@ export const MerchantProductsView = ({
           prev ? { ...prev, imageUrl: reader.result } : prev,
         );
         setEditImageError(false);
+        onClearProductError("imageUrl");
       }
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
-    if (!editingProduct) return;
-    const stockNum = Math.max(0, Number(editingProduct.stock) || 0);
-    const stockStatus =
-      stockNum === 0
-        ? "Out of Stock"
-        : stockNum <= 10
-          ? "Low Stock"
-          : "In Stock";
-    const cleanedImageUrl = (editingProduct.imageUrl || "").trim();
-    setBrokenImageIds((prev) => {
-      if (!prev[editingProduct.id]) return prev;
-      const next = { ...prev };
-      delete next[editingProduct.id];
-      return next;
-    });
-    onEditProduct({
-      ...editingProduct,
-      imageUrl: cleanedImageUrl,
-      priceBDT: Math.max(1, Number(editingProduct.priceBDT) || 0),
-      stock: stockNum,
-      status: stockStatus,
-    });
-    setEditingProduct(null);
-    setEditImageError(false);
+    if (!editingProduct || isSavingEdit) return;
+    setIsSavingEdit(true);
+    try {
+      const ok = await onEditProduct({
+        ...editingProduct,
+        imageBroken: editImageError,
+      });
+      if (ok !== false) {
+        setBrokenImageIds((prev) => {
+          if (!prev[editingProduct.id]) return prev;
+          const next = { ...prev };
+          delete next[editingProduct.id];
+          return next;
+        });
+        handleCloseEditModal();
+      }
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   return (
@@ -319,6 +339,7 @@ export const MerchantProductsView = ({
                         <button
                           type="button"
                           onClick={() => {
+                            onResetProductErrors();
                             setEditingProduct({ imageUrl: "", ...prod });
                             setEditImageError(false);
                           }}
@@ -347,20 +368,26 @@ export const MerchantProductsView = ({
       {editingProduct && (
         <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
-          onClick={() => setEditingProduct(null)}
+          onClick={handleCloseEditModal}
         >
           <form
+            noValidate
             onSubmit={handleSaveEdit}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-xl space-y-4 text-xs"
           >
             <div className="flex items-center justify-between pb-3 border-b border-outline-variant/40">
-              <h3 className="text-base font-bold text-on-surface">
-                Edit Product
-              </h3>
+              <div>
+                <h3 className="text-base font-bold text-on-surface">
+                  Edit Product
+                </h3>
+                <p className="text-[11px] text-on-surface-variant mt-0.5">
+                  Update product details, pricing, stock, and media
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() => setEditingProduct(null)}
+                onClick={handleCloseEditModal}
                 className="w-8 h-8 rounded-lg hover:bg-surface-container-low text-on-surface-variant flex items-center justify-center cursor-pointer"
                 aria-label="Close edit modal"
               >
@@ -370,17 +397,30 @@ export const MerchantProductsView = ({
 
             <div>
               <label className="block font-medium text-on-surface mb-1">
-                Product Title
+                Product Title <span className="text-error">*</span>
               </label>
               <input
                 type="text"
-                required
                 value={editingProduct.name}
-                onChange={(e) =>
-                  setEditingProduct({ ...editingProduct, name: e.target.value })
-                }
-                className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                aria-invalid={Boolean(productErrors.name)}
+                onChange={(e) => updateEditField("name", e.target.value)}
+                className={`w-full h-10 px-3 rounded-xl text-on-surface focus:outline-none focus:ring-1 transition-colors border ${
+                  productErrors.name
+                    ? "bg-error/[0.04] border-error focus:ring-error"
+                    : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                }`}
               />
+              {productErrors.name && (
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
+                  <span>{productErrors.name}</span>
+                </p>
+              )}
             </div>
 
             {/* Product Image Link or Upload */}
@@ -393,7 +433,7 @@ export const MerchantProductsView = ({
                   <button
                     type="button"
                     onClick={() => {
-                      setEditingProduct({ ...editingProduct, imageUrl: "" });
+                      updateEditField("imageUrl", "");
                       setEditImageError(false);
                     }}
                     className="text-[11px] font-medium text-error hover:underline cursor-pointer"
@@ -404,7 +444,13 @@ export const MerchantProductsView = ({
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-20 h-20 rounded-xl border border-outline-variant/60 bg-surface-container-low overflow-hidden shrink-0 flex items-center justify-center">
+                <div
+                  className={`w-20 h-20 rounded-xl border bg-surface-container-low overflow-hidden shrink-0 flex items-center justify-center ${
+                    productErrors.imageUrl || editImageError
+                      ? "border-error/70"
+                      : "border-outline-variant/60"
+                  }`}
+                >
                   {editingProduct.imageUrl && !editImageError ? (
                     <img
                       src={editingProduct.imageUrl}
@@ -414,7 +460,11 @@ export const MerchantProductsView = ({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="material-symbols-outlined text-2xl text-outline">
+                    <span
+                      className={`material-symbols-outlined text-2xl ${
+                        editImageError ? "text-error" : "text-outline"
+                      }`}
+                    >
                       {editImageError ? "broken_image" : "add_photo_alternate"}
                     </span>
                   )}
@@ -425,15 +475,17 @@ export const MerchantProductsView = ({
                     type="text"
                     inputMode="url"
                     value={editingProduct.imageUrl || ""}
+                    aria-invalid={Boolean(productErrors.imageUrl)}
                     onChange={(e) => {
-                      setEditingProduct({
-                        ...editingProduct,
-                        imageUrl: e.target.value,
-                      });
+                      updateEditField("imageUrl", e.target.value);
                       setEditImageError(false);
                     }}
                     placeholder="https://example.com/product.jpg"
-                    className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                    className={`w-full h-10 px-3 rounded-xl text-on-surface focus:outline-none focus:ring-1 transition-colors border ${
+                      productErrors.imageUrl
+                        ? "bg-error/[0.04] border-error focus:ring-error"
+                        : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                    }`}
                   />
 
                   <div className="flex items-center gap-2">
@@ -449,33 +501,61 @@ export const MerchantProductsView = ({
                         className="sr-only"
                       />
                     </label>
-                    <span className="text-[11px] text-on-surface-variant truncate">
+                    <span
+                      className={`text-[11px] truncate ${
+                        editImageError
+                          ? "text-error font-medium"
+                          : "text-on-surface-variant"
+                      }`}
+                    >
                       {editImageError
-                        ? "Could not load image URL"
+                        ? "Image preview failed to load"
                         : "Paste image link or pick from device"}
                     </span>
                   </div>
                 </div>
               </div>
+
+              {productErrors.imageUrl && (
+                <p
+                  role="alert"
+                  className="mt-1 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
+                  <span>{productErrors.imageUrl}</span>
+                </p>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 items-start">
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  SKU
+                  SKU <span className="text-error">*</span>
                 </label>
                 <input
                   type="text"
-                  required
                   value={editingProduct.sku}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      sku: e.target.value,
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                  aria-invalid={Boolean(productErrors.sku)}
+                  onChange={(e) => updateEditField("sku", e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl text-on-surface font-mono focus:outline-none focus:ring-1 transition-colors border ${
+                    productErrors.sku
+                      ? "bg-error/[0.04] border-error focus:ring-error"
+                      : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                  }`}
                 />
+                {productErrors.sku && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 flex items-start gap-1 text-[11px] font-medium text-error leading-snug"
+                  >
+                    <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                      error
+                    </span>
+                    <span>{productErrors.sku}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-medium text-on-surface mb-1">
@@ -483,13 +563,8 @@ export const MerchantProductsView = ({
                 </label>
                 <select
                   value={editingProduct.category}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      category: e.target.value,
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                  onChange={(e) => updateEditField("category", e.target.value)}
+                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                 >
                   <option>Audio Tech</option>
                   <option>Computing</option>
@@ -500,42 +575,60 @@ export const MerchantProductsView = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 items-start">
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  Price (BDT)
+                  Price (BDT) <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
-                  min="1"
-                  required
                   value={editingProduct.priceBDT}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      priceBDT: e.target.value,
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
+                  aria-invalid={Boolean(productErrors.priceBDT)}
+                  onChange={(e) => updateEditField("priceBDT", e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 transition-colors border ${
+                    productErrors.priceBDT
+                      ? "bg-error/[0.04] border-error focus:ring-error"
+                      : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                  }`}
                 />
+                {productErrors.priceBDT && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 flex items-start gap-1 text-[11px] font-medium text-error leading-snug"
+                  >
+                    <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                      error
+                    </span>
+                    <span>{productErrors.priceBDT}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-medium text-on-surface mb-1">
-                  Stock
+                  Stock <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  required
                   value={editingProduct.stock}
-                  onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      stock: e.target.value,
-                    })
-                  }
-                  className="w-full h-10 px-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-primary"
+                  aria-invalid={Boolean(productErrors.stock)}
+                  onChange={(e) => updateEditField("stock", e.target.value)}
+                  className={`w-full h-10 px-3 rounded-xl text-on-surface font-mono tabular-nums focus:outline-none focus:ring-1 transition-colors border ${
+                    productErrors.stock
+                      ? "bg-error/[0.04] border-error focus:ring-error"
+                      : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                  }`}
                 />
+                {productErrors.stock && (
+                  <p
+                    role="alert"
+                    className="mt-1.5 flex items-start gap-1 text-[11px] font-medium text-error leading-snug"
+                  >
+                    <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                      error
+                    </span>
+                    <span>{productErrors.stock}</span>
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block font-medium text-on-surface mb-1">
@@ -544,12 +637,9 @@ export const MerchantProductsView = ({
                 <select
                   value={editingProduct.listingStatus || "Active"}
                   onChange={(e) =>
-                    setEditingProduct({
-                      ...editingProduct,
-                      listingStatus: e.target.value,
-                    })
+                    updateEditField("listingStatus", e.target.value)
                   }
-                  className="w-full h-10 px-2 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full h-10 px-2 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                 >
                   <option value="Active">Active</option>
                   <option value="Draft">Draft</option>
@@ -559,35 +649,72 @@ export const MerchantProductsView = ({
             </div>
 
             <div>
-              <label className="block font-medium text-on-surface mb-1">
-                Description
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block font-medium text-on-surface">
+                  Description <span className="text-error">*</span>
+                </label>
+                <span className="text-[11px] font-mono tabular-nums text-outline">
+                  {String(editingProduct.description || "").trim().length}/2000
+                </span>
+              </div>
               <textarea
                 rows={3}
                 value={editingProduct.description || ""}
-                onChange={(e) =>
-                  setEditingProduct({
-                    ...editingProduct,
-                    description: e.target.value,
-                  })
-                }
-                className="w-full p-3 bg-surface-container-low border border-outline-variant/60 rounded-xl text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                aria-invalid={Boolean(productErrors.description)}
+                onChange={(e) => updateEditField("description", e.target.value)}
+                className={`w-full p-3 rounded-xl text-on-surface focus:outline-none focus:ring-1 transition-colors border ${
+                  productErrors.description
+                    ? "bg-error/[0.04] border-error focus:ring-error"
+                    : "bg-surface-container-low border-outline-variant/60 focus:ring-primary"
+                }`}
               />
+              {productErrors.description && (
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
+                  <span>{productErrors.description}</span>
+                </p>
+              )}
             </div>
 
-            <div className="pt-2 flex items-center justify-end gap-2">
+            {productSubmitError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl border border-error/35 bg-error/[0.08] text-error"
+              >
+                <span className="material-symbols-outlined text-base shrink-0 mt-0.5">
+                  error
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-xs">
+                    Unable to update product
+                  </p>
+                  <p className="text-[11px] mt-0.5 leading-snug">
+                    {productSubmitError}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-outline-variant/40 flex items-center justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setEditingProduct(null)}
+                onClick={handleCloseEditModal}
                 className="px-4 py-2 rounded-xl border border-outline-variant/70 font-medium text-on-surface hover:bg-surface-container-low cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-semibold cursor-pointer"
+                disabled={isSavingEdit}
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container disabled:opacity-60 text-on-primary font-semibold cursor-pointer inline-flex items-center gap-1.5"
               >
-                Save Changes
+                <span className="material-symbols-outlined text-sm">check</span>
+                <span>{isSavingEdit ? "Saving..." : "Save Changes"}</span>
               </button>
             </div>
           </form>

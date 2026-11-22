@@ -239,11 +239,95 @@ const MerchantDashboardScreen = ({
     }
   };
 
-  const handleEditProduct = (updatedProduct) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)),
-    );
-    setBannerMessage(`Updated "${updatedProduct.name}".`);
+  // Update Product
+  const handleEditProduct = async (updatedProduct) => {
+    const errors = validateProduct(updatedProduct, {
+      editingId: updatedProduct.id,
+      imageLoadError: Boolean(updatedProduct.imageBroken),
+    });
+    setProductErrors(errors);
+
+    const errorCount = Object.keys(errors).length;
+    if (errorCount > 0) {
+      setProductSubmitError(
+        `Please fix the ${errorCount} highlighted field${errorCount === 1 ? "" : "s"} above before saving.`,
+      );
+      return false;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setProductSubmitError("Your session has expired. Please log in again.");
+      return false;
+    }
+
+    const payload = {
+      productName: updatedProduct.name.trim(),
+      imageUrl: updatedProduct.imageUrl.trim(),
+      sku: updatedProduct.sku.trim().toUpperCase(),
+      category: updatedProduct.category,
+      price: Number(updatedProduct.priceBDT),
+      stockQuantity: Number(updatedProduct.stock),
+      status: String(updatedProduct.listingStatus || "Active").toLowerCase(),
+      description: updatedProduct.description.trim(),
+    };
+
+    try {
+      const response = await axios.patch(
+        `http://localhost:3000/api/merchant/products/${updatedProduct.id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to update product.");
+      }
+
+      // ... existing success mapping / setProducts / banner ...
+
+      setProductErrors({});
+      setProductSubmitError("");
+      return true;
+    } catch (error) {
+      console.error("Product update error:", error.response?.data || error);
+
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update product.";
+
+      // Show inside the modal, where the user can actually see it
+      setProductSubmitError(message);
+
+      // Map server-side SKU conflicts onto the field
+      if (/sku/i.test(message)) {
+        setProductErrors((prev) => ({ ...prev, sku: message }));
+      }
+      return false;
+    }
+  };
+
+  const clearProductFieldError = (field) => {
+    if (field && productErrors[field]) {
+      setProductErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+    if (productSubmitError) {
+      setProductSubmitError("");
+    }
+  };
+
+  const resetProductErrors = () => {
+    setProductErrors({});
+    setProductSubmitError("");
   };
 
   const handleDeleteProduct = (productId) => {
@@ -307,16 +391,19 @@ const MerchantDashboardScreen = ({
   };
 
   // Product Validation
-  const validateProduct = (product) => {
+  const validateProduct = (
+    product,
+    { editingId = null, imageLoadError = false } = {},
+  ) => {
     const errors = {};
-    const trimmedName = product.name.trim();
-    const sku = product.sku.trim();
-    const rawPrice = String(product.priceBDT).trim();
+    const trimmedName = String(product.name ?? "").trim();
+    const sku = String(product.sku ?? "").trim();
+    const rawPrice = String(product.priceBDT ?? "").trim();
     const price = Number(rawPrice);
-    const rawStock = String(product.stock).trim();
+    const rawStock = String(product.stock ?? "").trim();
     const stock = Number(rawStock);
-    const imageUrl = product.imageUrl.trim();
-    const description = product.description.trim();
+    const imageUrl = String(product.imageUrl ?? "").trim();
+    const description = String(product.description ?? "").trim();
 
     if (!trimmedName) {
       errors.name = "Product title is required";
@@ -333,7 +420,11 @@ const MerchantDashboardScreen = ({
     } else if (!/^[A-Za-z0-9_-]+$/.test(sku)) {
       errors.sku = "Use only letters, numbers, hyphens (-), or underscores (_)";
     } else if (
-      products.some((p) => p.sku.toLowerCase() === sku.toLowerCase())
+      products.some(
+        (p) =>
+          String(p.id) !== String(editingId) &&
+          p.sku.toLowerCase() === sku.toLowerCase(),
+      )
     ) {
       errors.sku = `SKU "${sku.toUpperCase()}" already exists in your catalog`;
     }
@@ -350,14 +441,12 @@ const MerchantDashboardScreen = ({
       errors.stock = "Enter a whole number of 0 or more";
     }
 
-    if (!imageUrl.trim()) {
+    if (!imageUrl) {
       errors.imageUrl = "Image link is required";
-    }
-
-    if (imageUrl) {
+    } else {
       const isDataImage =
         /^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,/i.test(imageUrl);
-      let isValidUrl;
+      let isValidUrl = false;
       try {
         const parsed = new URL(imageUrl);
         isValidUrl = ["http:", "https:"].includes(parsed.protocol);
@@ -368,7 +457,7 @@ const MerchantDashboardScreen = ({
       if (!isValidUrl && !isDataImage) {
         errors.imageUrl =
           "Enter a valid HTTP/HTTPS image URL or upload a picture";
-      } else if (newProductImageError) {
+      } else if (imageLoadError) {
         errors.imageUrl =
           "Could not load image from this URL. Check the link or upload a file";
       }
@@ -390,7 +479,9 @@ const MerchantDashboardScreen = ({
     e.preventDefault();
 
     // Frontend validation
-    const errors = validateProduct(newProduct);
+    const errors = validateProduct(newProduct, {
+      imageLoadError: newProductImageError,
+    });
     setProductErrors(errors);
 
     const errorCount = Object.keys(errors).length;
@@ -465,9 +556,9 @@ const MerchantDashboardScreen = ({
         sold30d: Number(apiProduct.sold_30d ?? apiProduct.sold30d ?? 0),
 
         status:
-          Number(apiProduct.stock ?? payload.stock) === 0
+          Number(apiProduct.stock_quantity ?? payload.stockQuantity) === 0
             ? "Out of Stock"
-            : Number(apiProduct.stock ?? payload.stock) <= 10
+            : Number(apiProduct.stock_quantity ?? payload.stockQuantity) <= 10
               ? "Low Stock"
               : "In Stock",
 
@@ -1532,6 +1623,10 @@ const MerchantDashboardScreen = ({
                   onToggleListingStatus={handleToggleListingStatus}
                   formatPrice={formatPrice}
                   renderStatusLabel={renderStatusLabel}
+                  productErrors={productErrors}
+                  productSubmitError={productSubmitError}
+                  onClearProductError={clearProductFieldError}
+                  onResetProductErrors={resetProductErrors}
                 />
               )}
             </>
