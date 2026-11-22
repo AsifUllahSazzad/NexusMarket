@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { MERCHANT_DASHBOARD_DATA } from "./merchantData";
 import { MerchantProductsView } from "../components/screen/merchant/MerchantProductsView";
@@ -38,9 +38,11 @@ const MerchantDashboardScreen = ({
   const [orderStatusFilter, setOrderStatusFilter] = useState("All");
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const [products, setProducts] = useState(
-    MERCHANT_DASHBOARD_DATA.inventoryProducts,
-  );
+  // Product State
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [productFetchError, setProductFetchError] = useState("");
+
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [newProductImageError, setNewProductImageError] = useState(false);
   const [productErrors, setProductErrors] = useState({});
@@ -66,12 +68,10 @@ const MerchantDashboardScreen = ({
   const [bannerMessage, setBannerMessage] = useState("");
 
   const baseKpis = kpisByPeriod[period];
-  const extraProductsCount =
-    products.length - MERCHANT_DASHBOARD_DATA.inventoryProducts.length;
-  const currentTotalProducts = Math.max(
-    0,
-    baseKpis.totalProducts + extraProductsCount,
-  );
+
+  // Current Total Product
+  const currentTotalProducts = products.length;
+
   const lowStockCount = products.filter(
     (p) => p.stock > 0 && p.stock <= 10,
   ).length;
@@ -115,27 +115,114 @@ const MerchantDashboardScreen = ({
     setBannerMessage(`Order ${orderId} updated to ${nextStatus}.`);
   };
 
-  const handleAdjustStock = (productId, delta) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id !== productId) return p;
-        const nextStock = Math.max(0, p.stock + delta);
-        const nextStatus =
-          nextStock === 0
-            ? "Out of Stock"
-            : nextStock <= 10
-              ? "Low Stock"
-              : "In Stock";
-        return { ...p, stock: nextStock, status: nextStatus };
-      }),
-    );
+  // Update Stock
+  const handleAdjustStock = async (productId, delta) => {
+    try {
+      // Validate the stock adjustment
+      if (delta !== 1 && delta !== -1) {
+        throw new Error("Invalid stock adjustment.");
+      }
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
+      // Send stock adjustment to backend
+      const response = await axios.patch(
+        `http://localhost:3000/api/merchant/products/${productId}/stock`,
+        {
+          change: delta,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to update stock.");
+      }
+
+      // Get updated stock from backend
+      const updatedStock = Number(response.data.product.stockQuantity);
+
+      // Update frontend after successful database update
+      setProducts((previousProducts) =>
+        previousProducts.map((product) => {
+          if (String(product.id) !== String(productId)) {
+            return product;
+          }
+
+          const inventoryStatus =
+            updatedStock === 0
+              ? "Out of Stock"
+              : updatedStock <= 10
+                ? "Low Stock"
+                : "In Stock";
+
+          return {
+            ...product,
+            stock: updatedStock,
+            status: inventoryStatus,
+          };
+        }),
+      );
+
+      setBannerMessage("Product stock updated successfully.");
+    } catch (error) {
+      console.error("Stock update error:", error.response?.data || error);
+
+      setBannerMessage(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update product stock.",
+      );
+    }
   };
 
-  const handleToggleListingStatus = (productId, listingStatus) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, listingStatus } : p)),
-    );
-    setBannerMessage(`Product status updated to ${listingStatus}.`);
+  // Update Status
+  const handleToggleListingStatus = async (productId, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.patch(
+        `http://localhost:3000/api/merchant/products/${productId}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data?.message);
+      }
+
+      // Update frontend only after backend confirms success
+      setProducts((previousProducts) =>
+        previousProducts.map((product) =>
+          String(product.id) === String(productId)
+            ? {
+                ...product,
+                status: response.data.product.status,
+                listingStatus: response.data?.product.status,
+              }
+            : product,
+        ),
+      );
+    } catch (error) {
+      console.error("Status update failed:", error);
+
+      alert(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update product status.",
+      );
+    }
   };
 
   const handleEditProduct = (updatedProduct) => {
@@ -256,7 +343,7 @@ const MerchantDashboardScreen = ({
     if (imageUrl) {
       const isDataImage =
         /^data:image\/(jpeg|jpg|png|webp|gif|svg\+xml);base64,/i.test(imageUrl);
-      let isValidUrl = false;
+      let isValidUrl;
       try {
         const parsed = new URL(imageUrl);
         isValidUrl = ["http:", "https:"].includes(parsed.protocol);
@@ -284,6 +371,7 @@ const MerchantDashboardScreen = ({
     return errors;
   };
 
+  // Add New Product
   const handleAddProduct = async (e) => {
     e.preventDefault();
 
@@ -319,6 +407,7 @@ const MerchantDashboardScreen = ({
       description: newProduct.description.trim(),
     };
 
+    console.log("Payload:", payload);
 
     try {
       setIsSubmittingProduct(true);
@@ -381,16 +470,16 @@ const MerchantDashboardScreen = ({
       setProducts((prev) => [createdProduct, ...prev]);
 
       // Reset form
-      // setNewProduct({
-      //   name: "",
-      //   sku: "",
-      //   category: "Audio Tech",
-      //   priceBDT: "",
-      //   stock: "",
-      //   listingStatus: "Active",
-      //   imageUrl: "",
-      //   description: "",
-      // });
+      setNewProduct({
+        name: "",
+        sku: "",
+        category: "Audio Tech",
+        priceBDT: "",
+        stock: "",
+        listingStatus: "Active",
+        imageUrl: "",
+        description: "",
+      });
 
       setProductErrors({});
       setNewProductImageError(false);
@@ -411,6 +500,86 @@ const MerchantDashboardScreen = ({
       setIsSubmittingProduct(false);
     }
   };
+
+  // Get all products belonging to logged-in merchant
+  const fetchMerchantProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      setProductFetchError("");
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
+      const response = await axios.get(
+        "http://localhost:3000/api/merchant/products",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const apiProducts = response.data?.data;
+
+      if (!Array.isArray(apiProducts)) {
+        throw new Error("Invalid products response from server.");
+      }
+
+      const formattedProducts = apiProducts.map((product) => {
+        const stock = Number(product.stock_quantity ?? 0);
+
+        const listingStatus = String(product.status ?? "active").toLowerCase();
+
+        return {
+          id: product.id,
+          merchantId: product.merchant_id,
+
+          name: product.product_name ?? "",
+          sku: product.sku ?? "",
+          category: product.category ?? "",
+
+          priceBDT: Number(product.price ?? 0),
+          stock,
+
+          imageUrl: product.image_url ?? "",
+          description: product.description ?? "",
+
+          sold30d: Number(product.sold_30d ?? 0),
+
+          status:
+            stock === 0
+              ? "Out of Stock"
+              : stock <= 10
+                ? "Low Stock"
+                : "In Stock",
+
+          listingStatus:
+            listingStatus.charAt(0).toUpperCase() + listingStatus.slice(1),
+        };
+      });
+
+      setProducts(formattedProducts);
+    } catch (error) {
+      console.error(
+        "Fetch merchant products error:",
+        error.response?.data?.message ?? error,
+      );
+
+      setProductFetchError(
+        error.response?.data?.message ??
+          error.message ??
+          "Failed to fetch merchant products.",
+      );
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+  useEffect(() => {
+    fetchMerchantProducts();
+  }, []);
 
   const handleRequestWithdrawal = ({ amountBDT, method, note }) => {
     const newReqId = `WDR-${Math.floor(4110 + Math.random() * 800)}`;
@@ -630,27 +799,6 @@ const MerchantDashboardScreen = ({
     hoveredBarIndex !== null && chartSeries[hoveredBarIndex]
       ? chartSeries[hoveredBarIndex]
       : chartSeries[chartSeries.length - 1];
-
-  if (applicationStatus === "pending") {
-    return (
-      <MerchantPendingApplicationView
-        application={merchantApplication}
-        onStatusChange={onApplicationStatusChange}
-        onNavigate={onNavigate}
-      />
-    );
-  }
-
-  if (applicationStatus === "rejected") {
-    return (
-      <MerchantRejectedApplicationView
-        application={merchantApplication}
-        onStatusChange={onApplicationStatusChange}
-        onResubmit={onResubmitApplication}
-        onNavigate={onNavigate}
-      />
-    );
-  }
 
   return (
     <div className="w-full max-w-[1440px] mx-auto px-gutter py-space-lg">
@@ -1332,16 +1480,47 @@ const MerchantDashboardScreen = ({
 
           {/* 2. MY PRODUCTS */}
           {activeNav === "products" && (
-            <MerchantProductsView
-              products={products}
-              onOpenAddModal={handleOpenAddProductModal}
-              onEditProduct={handleEditProduct}
-              onDeleteProduct={handleDeleteProduct}
-              onAdjustStock={handleAdjustStock}
-              onToggleListingStatus={handleToggleListingStatus}
-              formatPrice={formatPrice}
-              renderStatusLabel={renderStatusLabel}
-            />
+            <>
+              {loadingProducts ? (
+                <div className="py-16 text-center">
+                  <p className="text-sm font-medium text-on-surface">
+                    Loading your products...
+                  </p>
+                  <p className="text-xs text-on-surface-variant mt-1">
+                    Please wait while we retrieve your catalog.
+                  </p>
+                </div>
+              ) : productFetchError ? (
+                <div className="py-12 px-6 text-center bg-surface-container-lowest border border-outline-variant/60 rounded-2xl">
+                  <p className="text-sm font-semibold text-error">
+                    Unable to load products
+                  </p>
+
+                  <p className="text-xs text-on-surface-variant mt-2">
+                    {productFetchError}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={fetchMerchantProducts}
+                    className="mt-4 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <MerchantProductsView
+                  products={products}
+                  onOpenAddModal={handleOpenAddProductModal}
+                  onEditProduct={handleEditProduct}
+                  onDeleteProduct={handleDeleteProduct}
+                  onAdjustStock={handleAdjustStock}
+                  onToggleListingStatus={handleToggleListingStatus}
+                  formatPrice={formatPrice}
+                  renderStatusLabel={renderStatusLabel}
+                />
+              )}
+            </>
           )}
 
           {/* 3. ORDERS */}

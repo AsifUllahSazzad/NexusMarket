@@ -309,9 +309,9 @@ export const MerchantProductsView = ({
                         }
                         className="h-8 px-2 bg-surface-container-low border border-outline-variant/60 rounded-lg text-xs text-on-surface focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                       >
-                        <option value="Active">Active</option>
-                        <option value="Draft">Draft</option>
-                        <option value="Archived">Archived</option>
+                        <option value="active">Active</option>
+                        <option value="draft">Draft</option>
+                        <option value="archived">Archived</option>
                       </select>
                     </td>
                     <td className="py-2.5 px-4 text-right whitespace-nowrap">
