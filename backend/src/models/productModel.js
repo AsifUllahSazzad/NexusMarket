@@ -89,13 +89,8 @@ export const updateMerchantProductStatus = async (
   return result.rows[0] || null;
 };
 
-
 // Update Product Stock
-export const updateMerchantProductStock = async (
-  userId,
-  productId,
-  change,
-) => {
+export const updateMerchantProductStock = async (userId, productId, change) => {
   const query = `
     UPDATE products
     SET
@@ -119,6 +114,83 @@ export const updateMerchantProductStock = async (
   return result.rows[0] || null;
 };
 
+// Update full product
+export const updateMerchantProduct = async ({
+  productId,
+  merchantId,
+  productName,
+  sku,
+  imageUrl,
+  description,
+  category,
+  price,
+  stockQuantity,
+  status,
+}) => {
+  const query = `
+    UPDATE products
+    SET
+      product_name = $1,
+      sku = $2,
+      image_url = $3,
+      description = $4,
+      category = $5,
+      price = $6,
+      stock_quantity = $7,
+      status = $8,
+      updated_at = NOW()
+    WHERE
+      id = $9
+      AND merchant_id = $10
+    RETURNING
+      id,
+      merchant_id,
+      product_name,
+      sku,
+      image_url,
+      description,
+      category,
+      price,
+      stock_quantity,
+      status,
+      created_at,
+      updated_at;
+  `;
+
+  const values = [
+    productName,
+    sku,
+    imageUrl,
+    description,
+    category,
+    price,
+    stockQuantity,
+    status,
+    productId,
+    merchantId,
+  ];
+
+  const result = await pool.query(query, values);
+
+  return result.rows[0] || null;
+};
+
+// Delete Single Product
+export const deleteProduct = async (productId, merchantId) => {
+  const query = `
+    DELETE FROM products
+    WHERE id = $1
+      AND merchant_id = $2
+    RETURNING id;
+  `;
+
+  const result = await pool.query(query, [
+    productId,
+    merchantId,
+  ]);
+
+  return result.rows[0] || null;
+};
 
 // Get one product belonging to a merchant -> Not use
 export const getProductById = async (productId, merchantId) => {

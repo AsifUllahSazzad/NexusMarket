@@ -10,6 +10,7 @@ import {
   editMerchantProduct,
   getMerchantProductByIdController,
   getMerchantProductsController,
+  removeProduct,
 } from "../controllers/product.controller.js";
 import { createProductValidator } from "../validators/productValidator.js";
 import { validate } from "../middleware/validate.middleware.js";
@@ -33,7 +34,15 @@ router.patch("/:productId/status", changeProductStatus);
 router.patch("/:productId/stock", changeProductStock);
 
 // Single Product full update
-router.patch("/:productId", createProductValidator, validate, editMerchantProduct)
+router.patch(
+  "/:productId",
+  createProductValidator,
+  validate,
+  editMerchantProduct,
+);
+
+// Delete Single Product
+router.delete("/:productId", removeProduct);
 
 // Get one product belonging to logged-in merchant
 router.get("/:productId", getMerchantProductByIdController);

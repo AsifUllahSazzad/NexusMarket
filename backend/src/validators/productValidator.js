@@ -2,7 +2,7 @@ import { body } from "express-validator";
 
 export const createProductValidator = [
   // 1. Product Title
-  body("title")
+  body("productName")
     .trim()
     .notEmpty()
     .withMessage("Product name is required")
@@ -67,7 +67,7 @@ export const createProductValidator = [
     .toFloat(),
 
   // 5. Initial Stock
-  body("stock")
+  body("stockQuantity")
     .trim()
     .notEmpty()
     .withMessage("Stock quantity is required")

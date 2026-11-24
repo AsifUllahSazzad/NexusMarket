@@ -339,11 +339,35 @@ const MerchantDashboardScreen = ({
     setProductSubmitError("");
   };
 
-  const handleDeleteProduct = (productId) => {
-    const target = products.find((p) => p.id === productId);
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
-    if (target) {
-      setBannerMessage(`Removed "${target.name}" from catalog.`);
+  // Delete Product
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+
+      const response = await axios.delete(
+        `http://localhost:3000/api/merchant/products/${productId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product.id !== productId),
+      );
+
+      setBannerMessage(response.data.message);
+    } catch (error) {
+      console.error(
+        "Delete product error:",
+        error.response?.data || error.message,
+      );
+
+      setBannerMessage(
+        error.response?.data?.message || "Failed to delete product.",
+      );
     }
   };
 

@@ -1,5 +1,6 @@
 import {
   createProduct,
+  deleteProduct,
   getMerchantProducts,
   getProductById,
   updateMerchantProduct,
@@ -270,6 +271,38 @@ export const editMerchantProduct = async (req, res) => {
       success: false,
       message: "Failed to update product.",
     });
+  }
+};
+
+// Delete Single Product
+export const removeProduct = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    const merchantId = req.user.id;
+
+    // Validate product ID
+    if (!/^[1-9]\d*$/.test(productId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID.",
+      });
+    }
+
+    const deletedProduct = await deleteProduct(productId, merchantId);
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully.",
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
