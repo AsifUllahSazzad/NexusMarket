@@ -2,6 +2,7 @@ import {
   createProduct,
   getMerchantProducts,
   getProductById,
+  updateMerchantProduct,
   updateMerchantProductStatus,
   updateMerchantProductStock,
 } from "../models/productModel.js";
@@ -186,6 +187,88 @@ export const changeProductStock = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to update product stock.",
+    });
+  }
+};
+
+// Update Product Details
+export const editMerchantProduct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const merchantId = req.user?.id;
+
+    // 1. Authentication check
+    if (!merchantId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    // Receive request data
+    const {
+      productName,
+      sku,
+      imageUrl,
+      description,
+      category,
+      price,
+      stockQuantity,
+      status,
+    } = req.body;
+
+    // Optional fields
+    const normalizedSku =
+      typeof sku === "string" && sku.trim() ? sku.trim().toUpperCase() : null;
+
+    const normalizedImageUrl =
+      typeof imageUrl === "string" && imageUrl.trim() ? imageUrl.trim() : null;
+
+    const normalizedDescription =
+      typeof description === "string" && description.trim()
+        ? description.trim()
+        : null;
+
+    const normalizedStatus =
+      typeof status === "string" ? status.toLowerCase() : "";
+
+    const parsedStock = Number(stockQuantity);
+    const parsedPrice = Number(price);
+
+    // Update database
+    const updatedProduct = await updateMerchantProduct({
+      productId,
+      merchantId: String(merchantId),
+      productName: productName.trim(),
+      sku: normalizedSku,
+      imageUrl: normalizedImageUrl,
+      description: normalizedDescription,
+      category: category.trim(),
+      price: parsedPrice,
+      stockQuantity: parsedStock,
+      status: normalizedStatus,
+    });
+
+    // Product not found or not owned by merchant
+    if (!updatedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found.",
+      });
+    }
+
+    // Success response
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully.",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error("Edit merchant product error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update product.",
     });
   }
 };

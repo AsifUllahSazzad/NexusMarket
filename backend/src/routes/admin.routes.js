@@ -16,6 +16,9 @@ import { getAdminProfile } from "../controllers/admin.controller.js";
 
 const router = Router();
 
+// Admin login
+router.post("/login", loginAdminProfile);
+
 // Admin Profile
 router.get("/profile", authenticateToken, requireAdmin, getAdminProfile);
 
@@ -42,8 +45,5 @@ router.patch(
   requireAdmin,
   rejectApplicationController,
 );
-
-// Admin login
-router.post("/login", loginAdminProfile);
 
 export default router;

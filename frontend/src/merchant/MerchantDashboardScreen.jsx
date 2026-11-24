@@ -241,6 +241,7 @@ const MerchantDashboardScreen = ({
 
   // Update Product
   const handleEditProduct = async (updatedProduct) => {
+    // Validation Check
     const errors = validateProduct(updatedProduct, {
       editingId: updatedProduct.id,
       imageLoadError: Boolean(updatedProduct.imageBroken),
@@ -288,10 +289,18 @@ const MerchantDashboardScreen = ({
         throw new Error(response.data.message || "Failed to update product.");
       }
 
-      // ... existing success mapping / setProducts / banner ...
+      // Fetch updated products from backend
+      await fetchMerchantProducts();
 
+      // Clear validation errors
       setProductErrors({});
       setProductSubmitError("");
+
+      // Success message
+      setBannerMessage(
+        `Product "${updatedProduct.name}" updated successfully.`,
+      );
+
       return true;
     } catch (error) {
       console.error("Product update error:", error.response?.data || error);
@@ -592,10 +601,13 @@ const MerchantDashboardScreen = ({
 
       setBannerMessage(`Product "${createdProduct.name}" added successfully.`);
     } catch (error) {
+      console.log();
+
       console.error(
         "Product creation failed:",
-        error.response?.data?.message || error.message,
+        error.response?.data?.errors || error.message,
       );
+
       setBannerMessage(
         error.response?.data?.message ||
           error.message ||
