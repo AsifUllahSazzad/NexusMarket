@@ -344,7 +344,6 @@ const MerchantDashboardScreen = ({
     try {
       const token = localStorage.getItem("token");
 
-
       const response = await axios.delete(
         `http://localhost:3000/api/merchant/products/${productId}`,
         {
@@ -1056,33 +1055,7 @@ const MerchantDashboardScreen = ({
                 {sectionMeta[activeNav]?.title}
               </h1>
             </div>
-
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <div
-                className="flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant/50 rounded-xl text-xs"
-                role="group"
-                aria-label="Application status preview"
-              >
-                {[
-                  { id: "approved", label: "Approved" },
-                  { id: "pending", label: "Pending" },
-                  { id: "rejected", label: "Rejected" },
-                ].map((st) => (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => onApplicationStatusChange(st.id)}
-                    className={`px-2.5 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap cursor-pointer ${
-                      applicationStatus === st.id
-                        ? "bg-surface-container-lowest text-on-surface shadow-xs font-semibold"
-                        : "text-on-surface-variant hover:text-on-surface"
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                ))}
-              </div>
-
               {activeNav === "dashboard" && (
                 <div className="flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant/50 rounded-xl">
                   {["7d", "30d", "12m"].map((key) => (
