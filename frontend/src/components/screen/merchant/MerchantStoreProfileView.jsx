@@ -12,7 +12,7 @@ const EMPTY_STORE_FORM = {
   city: "",
   postalCode: "",
   logoUrl: "",
-  bannerUrl: ""
+  bannerUrl: "",
 };
 
 export const MerchantStoreProfileView = ({
@@ -21,7 +21,7 @@ export const MerchantStoreProfileView = ({
   mode = "update",
   application = {},
   onSaveProfile,
-  onOpenPublicStore
+  onOpenPublicStore,
 }) => {
   const isCreateMode = mode === "create";
 
@@ -37,7 +37,7 @@ export const MerchantStoreProfileView = ({
       ...EMPTY_STORE_FORM,
       name: customAppName,
       email: application.email || "",
-      phone: application.phone || ""
+      phone: application.phone || "",
     };
   };
 
@@ -104,40 +104,116 @@ export const MerchantStoreProfileView = ({
     setSubmitError("");
   };
 
-  const validateStoreForm = () => {
-    const nextErrors = {};
-    if (!form.name.trim() || form.name.trim().length < 2) {
-      nextErrors.name = "Store name must be at least 2 characters.";
+  // Validation
+  const validateStoreForm = (storeProfileData) => {
+    const errors = {};
+
+    const {
+      storeName = "",
+      handle = "",
+      tagline = "",
+      description = "",
+      email = "",
+      phone = "",
+      address = "",
+      city = "",
+      postalCode = "",
+    } = storeProfileData;
+
+    // 1. Store name
+    if (!storeName) {
+      errors.name = "Store name is required.";
+    } else if (storeName.length < 4) {
+      errors.name = "Store name must be at least 4 characters.";
+    } else if (storeName.length > 60) {
+      errors.name = "Store name cannot exceed 60 characters.";
     }
-    if (!form.handle.trim()) {
-      nextErrors.handle = "Store handle is required (e.g. @mystore_bd).";
+
+    // 2. Store handle
+    if (!handle) {
+      errors.handle = "Store handle is required.";
+    } else if (!/^@[a-zA-Z0-9_]{3,30}$/.test(handle)) {
+      errors.handle =
+        "Handle must start with @ and contain 3-30 letters, numbers, or underscores.";
     }
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      nextErrors.email = "Enter a valid support email address.";
+
+    // 3. Tagline (optional)
+    if (tagline.length > 120) {
+      errors.tagline = "Tagline cannot exceed 120 characters.";
     }
-    if (!form.phone.trim()) {
-      nextErrors.phone = "Contact phone number is required.";
+
+    // 4. Description (optional)
+    if (description.length > 2000) {
+      errors.description = "Description cannot exceed 2000 characters.";
     }
-    if (!form.address.trim()) {
-      nextErrors.address = "Street address is required for courier pickups.";
+
+    // 5. Support email
+    if (!email) {
+      errors.email = "Support email is required.";
+    } else if (
+      email.length > 255 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      errors.email = "Enter a valid support email address.";
     }
-    if (!form.city.trim()) {
-      nextErrors.city = "City is required.";
+
+    // 6. Contact phone (Bangladesh)
+    if (!phone) {
+      errors.phone = "Contact phone number is required.";
+    } else if (!/^(\+8801[3-9]\d{8}|01[3-9]\d{8})$/.test(phone)) {
+      errors.phone = "Enter a valid Bangladesh mobile number.";
     }
-    if (!form.postalCode.trim()) {
-      nextErrors.postalCode = "Postal code is required.";
+
+    // 7. Address
+    if (!address) {
+      errors.address = "Street address is required.";
+    } else if (address.length < 5) {
+      errors.address = "Address must be at least 5 characters.";
+    } else if (address.length > 250) {
+      errors.address = "Address cannot exceed 250 characters.";
     }
-    return nextErrors;
+
+    // 8. City
+    if (!city) {
+      errors.city = "City is required.";
+    } else if (city.length < 2) {
+      errors.city = "City must be at least 2 characters.";
+    } else if (city.length > 100) {
+      errors.city = "City cannot exceed 100 characters.";
+    }
+
+    // 9. Postal code (Bangladesh)
+    if (!postalCode) {
+      errors.postalCode = "Postal code is required.";
+    } else if (!/^\d{4}$/.test(postalCode)) {
+      errors.postalCode = "Postal code must contain exactly 4 digits.";
+    }
+    return errors;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validationErrors = validateStoreForm();
+
+    const storeProfileData = {
+      storeName: form.name?.trim(),
+      handle: form.handle?.trim(),
+      tagline: form.tagline?.trim(),
+      description: form.description?.trim(),
+      email: form.email?.trim(),
+      phone: form.phone?.trim(),
+      supportHours:
+        form.supportHours?.trim() || "Sat – Thu, 9:00 AM – 8:00 PM BST",
+      address: form.address?.trim(),
+      city: form.city?.trim(),
+      postalCode: form.postalCode?.trim(),
+    };
+
+    const validationErrors = validateStoreForm(storeProfileData);
     setErrors(validationErrors);
     const errorCount = Object.keys(validationErrors).length;
     if (errorCount > 0) {
       setSubmitError(
-        `Please fix the ${errorCount} highlighted field${errorCount === 1 ? "" : "s"} above before ${isCreateMode ? "creating" : "updating"} your store profile.`
+        `Please fix the ${errorCount} highlighted field${errorCount === 1 ? "" : "s"} above before ${isCreateMode ? "creating" : "updating"} your store profile.`,
       );
       return;
     }
@@ -154,10 +230,11 @@ export const MerchantStoreProfileView = ({
       description: form.description.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
-      supportHours: form.supportHours.trim() || "Sat – Thu, 9:00 AM – 8:00 PM BST",
+      supportHours:
+        form.supportHours.trim() || "Sat – Thu, 9:00 AM – 8:00 PM BST",
       address: form.address.trim(),
       city: form.city.trim(),
-      postalCode: form.postalCode.trim()
+      postalCode: form.postalCode.trim(),
     });
   };
 
@@ -166,7 +243,11 @@ export const MerchantStoreProfileView = ({
   const displayCity = form.city.trim() || "City not set";
 
   return (
-    <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6 text-xs">
+    <form
+      noValidate
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-6 text-xs"
+    >
       {isCreateMode && sampleProfile && (
         <section
           aria-label="Store creation quick fill"
@@ -177,7 +258,8 @@ export const MerchantStoreProfileView = ({
               Store Setup Details
             </h2>
             <p className="text-xs text-on-surface-variant">
-              Fill in your storefront branding, support email, and courier pickup address below.
+              Fill in your storefront branding, support email, and courier
+              pickup address below.
             </p>
           </div>
           <button
@@ -193,7 +275,11 @@ export const MerchantStoreProfileView = ({
             <span className="material-symbols-outlined text-sm">
               {isSampleFilled ? "close" : "auto_fix_high"}
             </span>
-            <span>{isSampleFilled ? "Clear Sample Details" : "Autofill Sample Details"}</span>
+            <span>
+              {isSampleFilled
+                ? "Clear Sample Details"
+                : "Autofill Sample Details"}
+            </span>
           </button>
         </section>
       )}
@@ -211,14 +297,20 @@ export const MerchantStoreProfileView = ({
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-indigo-950 flex flex-col items-center justify-center text-white/80 gap-1">
-              <span className="material-symbols-outlined text-3xl">storefront</span>
-              <span className="font-medium">{displayName} Storefront Banner</span>
+              <span className="material-symbols-outlined text-3xl">
+                storefront
+              </span>
+              <span className="font-medium">
+                {displayName} Storefront Banner
+              </span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
 
           <label className="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-surface-container-lowest/90 hover:bg-surface-container-lowest text-on-surface font-medium cursor-pointer flex items-center gap-1.5 shadow-sm transition-colors">
-            <span className="material-symbols-outlined text-sm">photo_camera</span>
+            <span className="material-symbols-outlined text-sm">
+              photo_camera
+            </span>
             <span>{form.bannerUrl ? "Change Banner" : "Upload Banner"}</span>
             <input
               type="file"
@@ -248,7 +340,9 @@ export const MerchantStoreProfileView = ({
             </div>
 
             <div className="pt-10 sm:pt-0">
-              <h2 className="text-lg font-bold text-on-surface">{displayName}</h2>
+              <h2 className="text-lg font-bold text-on-surface">
+                {displayName}
+              </h2>
               <p className="text-xs text-on-surface-variant">
                 {displayHandle} · {displayCity}
               </p>
@@ -286,7 +380,9 @@ export const MerchantStoreProfileView = ({
         {/* Identity & Description */}
         <section className="xl:col-span-7 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 space-y-4">
           <div className="pb-3 border-b border-outline-variant/40">
-            <h3 className="text-base font-bold text-on-surface">Store Identity & Description</h3>
+            <h3 className="text-base font-bold text-on-surface">
+              Store Identity & Description
+            </h3>
             <p className="text-xs text-on-surface-variant mt-0.5">
               Public brand details displayed across NexusMarket storefronts
             </p>
@@ -310,8 +406,13 @@ export const MerchantStoreProfileView = ({
                 }`}
               />
               {errors.name && (
-                <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                  <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
                   <span>{errors.name}</span>
                 </p>
               )}
@@ -334,8 +435,13 @@ export const MerchantStoreProfileView = ({
                 }`}
               />
               {errors.handle && (
-                <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                  <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
                   <span>{errors.handle}</span>
                 </p>
               )}
@@ -343,7 +449,9 @@ export const MerchantStoreProfileView = ({
           </div>
 
           <div>
-            <label className="block font-medium text-on-surface mb-1">Short Tagline</label>
+            <label className="block font-medium text-on-surface mb-1">
+              Short Tagline
+            </label>
             <input
               type="text"
               value={form.tagline}
@@ -354,7 +462,9 @@ export const MerchantStoreProfileView = ({
           </div>
 
           <div>
-            <label className="block font-medium text-on-surface mb-1">Store Description</label>
+            <label className="block font-medium text-on-surface mb-1">
+              Store Description
+            </label>
             <textarea
               rows={4}
               value={form.description}
@@ -368,7 +478,9 @@ export const MerchantStoreProfileView = ({
         {/* Contact Information & Address */}
         <section className="xl:col-span-5 bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 space-y-4">
           <div className="pb-3 border-b border-outline-variant/40">
-            <h3 className="text-base font-bold text-on-surface">Contact & Store Address</h3>
+            <h3 className="text-base font-bold text-on-surface">
+              Contact & Store Address
+            </h3>
             <p className="text-xs text-on-surface-variant mt-0.5">
               Used for courier pickups, returns, and buyer inquiries
             </p>
@@ -391,8 +503,13 @@ export const MerchantStoreProfileView = ({
               }`}
             />
             {errors.email && (
-              <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+              <p
+                role="alert"
+                className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+              >
+                <span className="material-symbols-outlined text-[14px] shrink-0">
+                  error
+                </span>
                 <span>{errors.email}</span>
               </p>
             )}
@@ -416,15 +533,22 @@ export const MerchantStoreProfileView = ({
                 }`}
               />
               {errors.phone && (
-                <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                  <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
                   <span>{errors.phone}</span>
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block font-medium text-on-surface mb-1">Operating Hours</label>
+              <label className="block font-medium text-on-surface mb-1">
+                Operating Hours
+              </label>
               <input
                 type="text"
                 value={form.supportHours}
@@ -452,8 +576,13 @@ export const MerchantStoreProfileView = ({
               }`}
             />
             {errors.address && (
-              <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+              <p
+                role="alert"
+                className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+              >
+                <span className="material-symbols-outlined text-[14px] shrink-0">
+                  error
+                </span>
                 <span>{errors.address}</span>
               </p>
             )}
@@ -477,8 +606,13 @@ export const MerchantStoreProfileView = ({
                 }`}
               />
               {errors.city && (
-                <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                  <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
                   <span>{errors.city}</span>
                 </p>
               )}
@@ -500,8 +634,13 @@ export const MerchantStoreProfileView = ({
                 }`}
               />
               {errors.postalCode && (
-                <p role="alert" className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error">
-                  <span className="material-symbols-outlined text-[14px] shrink-0">error</span>
+                <p
+                  role="alert"
+                  className="mt-1.5 flex items-center gap-1 text-[11px] font-medium text-error"
+                >
+                  <span className="material-symbols-outlined text-[14px] shrink-0">
+                    error
+                  </span>
                   <span>{errors.postalCode}</span>
                 </p>
               )}
@@ -518,7 +657,9 @@ export const MerchantStoreProfileView = ({
               </span>
               <div className="min-w-0">
                 <p className="font-semibold text-xs">
-                  {isCreateMode ? "Unable to create store profile" : "Unable to update store profile"}
+                  {isCreateMode
+                    ? "Unable to create store profile"
+                    : "Unable to update store profile"}
                 </p>
                 <p className="text-[11px] mt-0.5 leading-snug">{submitError}</p>
               </div>
