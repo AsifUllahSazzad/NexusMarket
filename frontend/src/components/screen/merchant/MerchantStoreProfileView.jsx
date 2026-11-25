@@ -191,51 +191,62 @@ export const MerchantStoreProfileView = ({
     return errors;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  // Normalization
+  const normalizeStoreForm = (form) => {
+    let handle = form.handle?.trim() || "";
 
-    const storeProfileData = {
-      storeName: form.name?.trim(),
-      handle: form.handle?.trim(),
-      tagline: form.tagline?.trim(),
-      description: form.description?.trim(),
-      email: form.email?.trim(),
-      phone: form.phone?.trim(),
+    // Add @ automatically
+    if (handle && !handle.startsWith("@")) {
+      handle = `@${handle}`;
+    }
+
+    return {
+      storeName: form.name?.trim() || "",
+      handle,
+      tagline: form.tagline?.trim() || "",
+      description: form.description?.trim() || "",
+      email: form.email?.trim().toLowerCase() || "",
+      phone: form.phone?.trim() || "",
       supportHours:
         form.supportHours?.trim() || "Sat – Thu, 9:00 AM – 8:00 PM BST",
-      address: form.address?.trim(),
-      city: form.city?.trim(),
-      postalCode: form.postalCode?.trim(),
+      address: form.address?.trim() || "",
+      city: form.city?.trim() || "",
+      postalCode: form.postalCode?.trim() || "",
     };
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const storeProfileData = normalizeStoreForm(form);
+
+    // Validate
     const validationErrors = validateStoreForm(storeProfileData);
+
     setErrors(validationErrors);
+
     const errorCount = Object.keys(validationErrors).length;
+
     if (errorCount > 0) {
       setSubmitError(
-        `Please fix the ${errorCount} highlighted field${errorCount === 1 ? "" : "s"} above before ${isCreateMode ? "creating" : "updating"} your store profile.`,
+        `Please fix the ${errorCount} highlighted field${
+          errorCount === 1 ? "" : "s"
+        } before ${isCreateMode ? "creating" : "updating"} your store profile.`,
       );
+
       return;
     }
 
-    const normalizedHandle = form.handle.trim().startsWith("@")
-      ? form.handle.trim()
-      : `@${form.handle.trim()}`;
+    setSubmitError("");
 
-    onSaveProfile({
-      ...form,
-      name: form.name.trim(),
-      handle: normalizedHandle,
-      tagline: form.tagline.trim(),
-      description: form.description.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      supportHours:
-        form.supportHours.trim() || "Sat – Thu, 9:00 AM – 8:00 PM BST",
-      address: form.address.trim(),
-      city: form.city.trim(),
-      postalCode: form.postalCode.trim(),
-    });
+    try {
+      await onSaveProfile(storeProfileData);
+    } catch (error) {
+      setSubmitError(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
+    }
   };
 
   const displayName = form.name.trim() || "New Merchant Store";

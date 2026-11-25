@@ -267,19 +267,72 @@ export const resubmitMerchantApplication = async (
   }
 };
 
-// // Get Single merchant store
-// export const findMerchantStore = async (merchantId) => {
-//   const query = `
-//   SELECT * FROM merchant_stores WHERE merchant_id = $1;
-//   `;
+// Create merchant store
+export const createMerchantStore = async (merchantId, storeProfileData) => {
+  const {
+    storeName,
+    handle,
+    tagline,
+    description,
+    email,
+    phone,
+    supportHours,
+    address,
+    city,
+    postalCode,
+  } = storeProfileData;
 
-//   const result = await pool.query(query, [merchantId]);
+  const query = `
+  INSERT INTO merchant_stores (
+      merchant_id,
+      store_name,
+      store_handle,
+      tagline,
+      description,
+      contact_email,
+      contact_phone,
+      support_hours,
+      address,
+      city,
+      postal_code
+    )
+    VALUES (
+      $1, $2, $3, $4, $5, $6,
+      $7, $8, $9, $10, $11, $12, $13
+    )
+    RETURNING *;
+  `;
 
-//   return result.rows[0] || null;
-// };
+  const values = [
+    merchantId,
+    storeName,
+    handle,
+    tagline || null,
+    description || null,
+    email,
+    phone,
+    supportHours || null,
+    address,
+    city,
+    postalCode,
+    created_at,
+    updated_at,
+  ];
 
+  const result = pool.query(query, values);
 
-// // Create merchant store
-// export const createMerchantStore = async (merchantId, storename) => {
+  return result.rows[0] || null;
+};
 
-// }
+// Find Single Merchant Store
+export const findMerchantStore = async (merchantId) => {
+  const query = `
+    SELECT *
+    FROM merchant_stores
+    WHERE merchant_id = $1;
+  `;
+
+  const result = await pool.query(query, [merchantId]);
+
+  return result.rows[0] || null;
+};

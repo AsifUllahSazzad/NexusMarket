@@ -4,6 +4,7 @@ import { authenticateToken } from "../middleware/authenticateToken.js";
 
 import {
   getMyMerchantApplication,
+  postMerchantStore,
   resubmitMerchantApplicationController,
 } from "../controllers/merchant.application.controller.js";
 import { storeValidation } from "../validators/storeProfileValidator.js";
@@ -23,7 +24,7 @@ router.post(
 );
 
 // Create Store Profile
-router.put("/store/profile", storeValidation, )
+router.put("/store/profile", storeValidation, postMerchantStore);
 
 //
 export default router;
