@@ -18,6 +18,15 @@ export const merchantDashboardLoader = async () => {
       },
     );
 
+    console.log("-->",response.data)
+
+    const { storeProfile } = response.data;
+
+    // Merchant has no store profile
+    if (!storeProfile) {
+      return redirect("/merchant/no-store");
+    }
+
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {

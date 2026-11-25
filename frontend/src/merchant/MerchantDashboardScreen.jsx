@@ -14,10 +14,6 @@ const MerchantDashboardScreen = ({
   onNavigate = () => {},
   currency = "BDT",
   formatPrice = (bdt) => `৳${Number(bdt || 0).toLocaleString()}`,
-  applicationStatus = "approved",
-  onApplicationStatusChange = () => {},
-  merchantApplication = {},
-  onResubmitApplication = () => {},
 }) => {
   const {
     store,
@@ -27,6 +23,11 @@ const MerchantDashboardScreen = ({
     bestSellingProducts,
     revenueReports,
   } = MERCHANT_DASHBOARD_DATA;
+
+  // data
+  const { application } = useLoaderData();
+
+  console.log(application);
 
   const [activeNav, setActiveNav] = useState("dashboard");
   const [period, setPeriod] = useState("30d");

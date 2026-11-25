@@ -20,7 +20,7 @@ export const HERO_FEATURED_PRODUCT = {
   inStock: true,
   stockCount: 14,
   isFeatured: true,
-  description: 'Direct-from-maker acoustics, bespoke mechanical components, and titanium EDC essentials. Verified authenticity with guaranteed buyer escrow protection.',
+  description: 'Direct-from-maker acoustics, bespoke mechanical components, and titanium EDC essentials. Verified authenticity with guaranteed buyer protection.',
 };
 
 export const FLASH_DROPS = [
@@ -820,15 +820,15 @@ export const INITIAL_ORDER_DATA = {
   paymentInfo: {
     method: 'bKash Online Gateway',
     transactionId: '#BKS-9932148',
-    status: 'Paid & Escrow Protected',
+    status: 'Paid & Confirmed',
     billingDate: 'Oct 24, 2025 at 3:45 PM',
   },
   orderId: '10025',
   placedDate: '18 Oct 2025, 14:32 BST',
   estimatedDelivery: 'Tomorrow by 6:00 PM',
   totalAmountBDT: 25650,
-  escrowOtp: '8492',
-  paymentMethod: 'bKash Escrow (TxnID: 9X82KD71LA)',
+  deliveryOtp: '8492',
+  paymentMethod: 'bKash (TxnID: 9X82KD71LA)',
   transactionId: '9X82KD71LA',
   assignedRider: {
     name: 'Kabir Hossain',
@@ -840,14 +840,14 @@ export const INITIAL_ORDER_DATA = {
   },
   timeline: [
     {
-      title: 'Order Confirmed & Escrow Authorized',
-      description: 'Customer payment secured in sovereign escrow vault.',
+      title: 'Order Confirmed & Payment Authorized',
+      description: 'Customer payment verified and order registered.',
       time: 'Oct 18, 14:32 BST',
       status: 'completed',
     },
     {
-      title: 'Escrow Vault Secured',
-      description: '৳25,650 locked. Funds held until doorstep inspection.',
+      title: 'Payment Cleared & Packed',
+      description: '৳25,650 confirmed. Packaging assigned for dispatch.',
       time: 'Oct 18, 14:35 BST',
       status: 'completed',
     },
@@ -864,8 +864,8 @@ export const INITIAL_ORDER_DATA = {
       status: 'current',
     },
     {
-      title: 'Delivered & Escrow Released',
-      description: 'Awaiting customer 4-digit OTP after open-box inspection.',
+      title: 'Delivered & Confirmed',
+      description: 'Awaiting customer 4-digit delivery confirmation code.',
       time: 'Est. 18:00 BST',
       status: 'pending',
     },
@@ -941,7 +941,7 @@ export const REVIEWS_MOCK = [
     verified: true,
     isVerifiedBuyer: true,
     comment:
-      'Astonishing acoustics. The beryllium drivers deliver ultra-crisp highs and tight, sub-bass rumble without bleeding into vocals. Arrived in sealed packaging with official serial and escrow confirmation.',
+      'Astonishing acoustics. The beryllium drivers deliver ultra-crisp highs and tight, sub-bass rumble without bleeding into vocals. Arrived in sealed packaging with official serial and warranty confirmation.',
     helpfulCount: 24,
   },
   {
@@ -976,7 +976,6 @@ export const MERCHANT_DASHBOARD_DATA = {
     name: 'SonicHub Official',
     handle: '@sonichub_bd',
     tier: 'Verified Flagship Store',
-    escrowHeldBDT: 184500,
     nextPayoutDate: 'Nov 18, 2026',
     fulfillmentRate: '99.4%',
     rating: 4.9,
@@ -1065,7 +1064,7 @@ export const MERCHANT_DASHBOARD_DATA = {
       sku: 'AT-NC900-BLK',
       itemsCount: 1,
       amountBDT: 8499,
-      paymentMethod: 'bKash Escrow',
+      paymentMethod: 'bKash',
       date: '13 Nov, 11:20',
       status: 'Shipped',
     },
@@ -1089,7 +1088,7 @@ export const MERCHANT_DASHBOARD_DATA = {
       sku: 'AT-TW400-SLV',
       itemsCount: 1,
       amountBDT: 4250,
-      paymentMethod: 'Nagad Escrow',
+      paymentMethod: 'Nagad',
       date: '12 Nov, 18:10',
       status: 'Delivered',
     },
@@ -1101,7 +1100,7 @@ export const MERCHANT_DASHBOARD_DATA = {
       sku: 'SH-DAC-PRO',
       itemsCount: 3,
       amountBDT: 3999,
-      paymentMethod: 'bKash Escrow',
+      paymentMethod: 'bKash',
       date: '12 Nov, 15:32',
       status: 'Processing',
     },
@@ -1137,7 +1136,7 @@ export const MERCHANT_DASHBOARD_DATA = {
       sku: 'AT-CASE-ARM',
       itemsCount: 4,
       amountBDT: 3800,
-      paymentMethod: 'bKash Escrow',
+      paymentMethod: 'bKash',
       date: '10 Nov, 16:50',
       status: 'Disputed',
     },
@@ -1275,10 +1274,10 @@ export const MERCHANT_DASHBOARD_DATA = {
     availableBalanceBDT: 426500,
     pendingPaymentsBDT: 184500,
     transactions: [
-      { id: 'TXN-98412', date: '13 Nov 2026', description: 'Escrow Release · Order #ORD-10023', type: 'Credit', amountBDT: 4038, status: 'Settled' },
-      { id: 'TXN-98395', date: '12 Nov 2026', description: 'Escrow Hold · Order #ORD-10025', type: 'Pending', amountBDT: 8074, status: 'In Escrow' },
+      { id: 'TXN-98412', date: '13 Nov 2026', description: 'Order Settlement · #ORD-10023', type: 'Credit', amountBDT: 4038, status: 'Settled' },
+      { id: 'TXN-98395', date: '12 Nov 2026', description: 'Pending Settlement · Order #ORD-10025', type: 'Pending', amountBDT: 8074, status: 'Pending Settlement' },
       { id: 'TXN-98340', date: '10 Nov 2026', description: 'Bank Transfer Payout · BRAC Bank ****4410', type: 'Withdrawal', amountBDT: -250000, status: 'Completed' },
-      { id: 'TXN-98288', date: '08 Nov 2026', description: 'Escrow Release · Order #ORD-10021', type: 'Credit', amountBDT: 3515, status: 'Settled' },
+      { id: 'TXN-98288', date: '08 Nov 2026', description: 'Order Settlement · #ORD-10021', type: 'Credit', amountBDT: 3515, status: 'Settled' },
       { id: 'TXN-98210', date: '05 Nov 2026', description: 'bKash Merchant Settlement · 01711-XXXX88', type: 'Withdrawal', amountBDT: -120000, status: 'Completed' },
     ],
     withdrawalRequests: [
@@ -1291,7 +1290,7 @@ export const MERCHANT_DASHBOARD_DATA = {
     name: 'SonicHub Official',
     handle: '@sonichub_bd',
     tagline: 'Direct-from-maker spatial acoustics & precision desk hardware.',
-    description: 'Official flagship studio store for AeroTech acoustic gear, custom CNC keyboard accessories, and lossless DACs. Every unit ships sealed with 12-month official replacement warranty and NexusMarket Escrow protection.',
+    description: 'Official flagship studio store for AeroTech acoustic gear, custom CNC keyboard accessories, and lossless DACs. Every unit ships sealed with a 12-month official replacement warranty.',
     email: 'support@sonichub.nexus.market',
     phone: '+880 1711-904820',
     supportHours: 'Sat – Thu, 9:00 AM – 8:00 PM BST',
@@ -1362,7 +1361,7 @@ export const MERCHANT_DASHBOARD_DATA = {
     security: {
       twoFactorEnabled: true,
       loginAlerts: true,
-      escrowAutoReleaseOtp: true,
+      withdrawalOtpLock: true,
       lastPasswordUpdate: '14 Oct 2026',
     },
   },
@@ -1370,150 +1369,3 @@ export const MERCHANT_DASHBOARD_DATA = {
 
 
 
-// Application Status Data for Merchant Onboarding
-
-export const INITIAL_MERCHANT_APPLICATION = {
-  applicationId: 'NM-MER-10245',
-  storeName: 'Tech World BD',
-  applicantName: 'Asif Ullah',
-  businessCategory: 'Consumer Electronics & Accessories',
-  submittedDate: '12 November 2026',
-  lastUpdated: '14 November 2026',
-  rejectionDate: '14 November 2026',
-  verificationType: 'Trade License',
-  tradeLicenseNumber: 'TL-DHK-2026-88419',
-  expectedReviewTime: '1–2 business days (48h SLA)',
-  contactEmail: 'asifullahsazzad0@gmail.com',
-  buyerAccountActive: true,
-};
-
-export const PENDING_PROGRESS_STEPS = [
-  {
-    id: 'submitted',
-    step: '01',
-    title: 'Application Submitted',
-    status: 'Completed',
-    description: 'Your application was successfully received.',
-  },
-  {
-    id: 'verification',
-    step: '02',
-    title: 'Document Verification',
-    status: 'In Progress',
-    description: 'Our team is verifying your business documents.',
-  },
-  {
-    id: 'approval',
-    step: '03',
-    title: 'Business Approval',
-    status: 'Upcoming',
-    description: 'Final approval by the NexusMarket team.',
-  },
-  {
-    id: 'activation',
-    step: '04',
-    title: 'Merchant Account Activation',
-    status: 'Upcoming',
-    description: 'Your merchant dashboard and selling tools will be unlocked.',
-  },
-];
-
-export const WHAT_HAPPENS_NEXT = [
-  'Our verification team reviews your submitted information.',
-  'We may contact you if additional documents are required.',
-  'You will receive an email notification when your application status changes.',
-  'Once approved, you can access your merchant dashboard.',
-];
-
-export const REJECTION_DETAILS = {
-  headline: 'Document Verification Failed',
-  description:
-    'The submitted trade license information could not be verified. Please upload a valid and readable document containing the correct business information.',
-  remarks:
-    'Please ensure that your business registration details match your submitted application.',
-  nextSteps: [
-    'Review the rejection reason carefully.',
-    'Correct the inaccurate information.',
-    'Prepare the required supporting documents.',
-    'Submit a new application or request reconsideration, according to your platform policy.',
-  ],
-};
-
-export const INITIAL_VERIFICATION_REQUIREMENTS = [
-  {
-    id: 'req-1',
-    label: 'Valid Trade License',
-    detail: 'Issued by local city corporation or municipal authority matching Tech World BD.',
-    pendingStatus: 'In Review',
-    rejectedStatus: 'Verification Failed',
-    approvedStatus: 'Verified',
-  },
-  {
-    id: 'req-2',
-    label: 'Applicant Identity Proof',
-    detail: 'Government-issued photo ID matching applicant name Asif Ullah.',
-    pendingStatus: 'Verified',
-    rejectedStatus: 'Verified',
-    approvedStatus: 'Verified',
-  },
-  {
-    id: 'req-3',
-    label: 'Store & Contact Alignment',
-    detail: 'Active business email and storefront category compliance.',
-    pendingStatus: 'Pending Final Check',
-    rejectedStatus: 'Needs Reconfirmation',
-    approvedStatus: 'Verified',
-  },
-];
-
-export const INITIAL_DOCUMENTS = [
-  {
-    id: 'doc-tl',
-    name: 'Trade_License_Tech_World_BD.pdf',
-    type: 'Trade License',
-    size: '1.8 MB',
-    uploadedAt: '12 Nov 2026',
-    pendingState: 'Under Review',
-    rejectedState: 'Rejected — Unreadable Seal',
-    approvedState: 'Verified',
-    removable: false,
-  },
-  {
-    id: 'doc-nid',
-    name: 'Applicant_ID_Asif_Ullah.pdf',
-    type: 'Identity Document',
-    size: '740 KB',
-    uploadedAt: '12 Nov 2026',
-    pendingState: 'Verified',
-    rejectedState: 'Verified',
-    approvedState: 'Verified',
-    removable: false,
-  },
-];
-
-export const INITIAL_HISTORY = [
-  {
-    id: 'hist-1',
-    timestamp: '14 Nov 2026 · 10:15',
-    event: 'Document Verification Assigned',
-    actor: 'NexusMarket Trust & Safety Desk',
-    status: 'Under Review',
-    note: 'Trade license queued for registration number cross-check.',
-  },
-  {
-    id: 'hist-2',
-    timestamp: '12 Nov 2026 · 16:40',
-    event: 'Identity Record Verified',
-    actor: 'Automated KYC Check',
-    status: 'Completed',
-    note: 'Applicant photo ID matched submitted profile for Asif Ullah.',
-  },
-  {
-    id: 'hist-3',
-    timestamp: '12 Nov 2026 · 16:32',
-    event: 'Merchant Application Submitted',
-    actor: 'Asif Ullah',
-    status: 'Received',
-    note: 'Reference NM-MER-10245 created for Tech World BD.',
-  },
-];
