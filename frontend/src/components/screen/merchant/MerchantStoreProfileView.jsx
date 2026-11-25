@@ -132,7 +132,7 @@ export const MerchantStoreProfileView = ({
     // 2. Store handle
     if (!handle) {
       errors.handle = "Store handle is required.";
-    } else if (!/^@[a-zA-Z0-9_]{3,30}$/.test(handle)) {
+    } else if (!/^@[a-zA-Z0-9-_]{3,30}$/.test(handle)) {
       errors.handle =
         "Handle must start with @ and contain 3-30 letters, numbers, or underscores.";
     }

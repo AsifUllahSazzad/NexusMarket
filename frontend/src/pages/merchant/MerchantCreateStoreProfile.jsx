@@ -2,15 +2,12 @@ import { useState } from "react";
 import { MERCHANT_DASHBOARD_DATA } from "../../merchant/merchantData";
 
 import { MerchantStoreProfileView } from "../../components/screen/merchant/MerchantStoreProfileView";
+import { useNavigate } from "react-router";
+import axios from "axios";
 
-export const MerchantCreateStoreProfile = ({
-  onNavigate = () => {},
-  // storeProfile,
-  merchantApplication = {},
-  onSaveStoreProfile = () => {},
-}) => {
+export const MerchantCreateStoreProfile = () => {
   // Store Profile
-  const storeProfile = {
+  const storeProfileTemplateData = {
     name: "SonicHub Official",
     handle: "@sonichub_bd",
     tagline: "Direct-from-maker spatial acoustics & precision desk hardware.",
@@ -26,14 +23,54 @@ export const MerchantCreateStoreProfile = ({
     bannerUrl: "../../assets/images/merchant_store_banner_1794571596713.jpg",
   };
 
-  const [savedMessage, setSavedMessage] = useState("");
+  const navigate = useNavigate();
 
-  const handleSave = (updatedProfile) => {
-    onSaveStoreProfile(updatedProfile);
-    setSavedMessage(
-      `Store profile "${updatedProfile.name}" has been created and saved to your NexusMarket seller account.`,
-    );
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const [savedMessage, setSavedMessage] = useState("");
+  const [saveError, setSaveError] = useState("");
+
+  const handleSave = async (storeProfileData) => {
+    setSavedMessage("");
+    setSaveError("");
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Authentication required. Please login.");
+      }
+
+      const response = await axios.put(
+        "http://localhost:3000/api/merchant/store/profile",
+        storeProfileData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log(response)
+
+      if (!response.data.success) {
+        throw new Error(response.message || "Store creation failed.");
+      }
+
+      setSavedMessage(
+        `Store "${storeProfileData.storeName}" created successfully.`,
+      );
+
+      // Navigate after successful creation.
+      navigate("/merchant/dashboard", { replace: true });
+
+      return response.data;
+    } catch (error) {
+      setSaveError(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to create your store.",
+      );
+      throw error;
+    }
   };
 
   return (
@@ -44,7 +81,7 @@ export const MerchantCreateStoreProfile = ({
           <div className="flex items-center gap-1.5 text-xs text-on-surface-variant">
             <button
               type="button"
-              onClick={() => onNavigate("home")}
+              onClick={() => navigate("home")}
               className="hover:text-primary transition-colors cursor-pointer"
             >
               NexusMarket
@@ -52,7 +89,7 @@ export const MerchantCreateStoreProfile = ({
             <span aria-hidden="true">/</span>
             <button
               type="button"
-              onClick={() => onNavigate("merchant-dashboard")}
+              onClick={() => navigate("merchant-dashboard")}
               className="hover:text-primary transition-colors cursor-pointer"
             >
               Merchant Account
@@ -75,7 +112,7 @@ export const MerchantCreateStoreProfile = ({
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => onNavigate("merchant-dashboard")}
+            onClick={() => navigate("merchant-dashboard")}
             className="px-4 py-2 rounded-xl border border-outline-variant/70 bg-surface-container-lowest hover:bg-surface-container-low text-xs font-medium text-on-surface transition-colors inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
           >
             <span className="material-symbols-outlined text-base">
@@ -108,7 +145,7 @@ export const MerchantCreateStoreProfile = ({
 
           <button
             type="button"
-            onClick={() => onNavigate("merchant-dashboard")}
+            onClick={() => navigate("merchant-dashboard")}
             className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold whitespace-nowrap shrink-0 cursor-pointer"
           >
             Open Merchant Dashboard
@@ -116,12 +153,20 @@ export const MerchantCreateStoreProfile = ({
         </div>
       )}
 
+      {saveError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-500/40 p-4 text-sm text-red-600"
+        >
+          {saveError}
+        </div>
+      )}
+
       {/* Store Profile Form */}
       <MerchantStoreProfileView
-        profile={storeProfile}
-        sampleProfile={storeProfile}
+        profile={storeProfileTemplateData}
+        sampleProfile={storeProfileTemplateData}
         mode="create"
-        application={merchantApplication}
         onSaveProfile={handleSave}
       />
     </div>
