@@ -3,6 +3,8 @@ import pool from "../config/db.js";
 import jwt from "jsonwebtoken";
 import {
   createMerchantApplication,
+  createMerchantStore,
+  findMerchantStore,
   resubmitMerchantApplication,
 } from "../models/merchantApplicationModel.js";
 import { getMerchantApplicationByUserId } from "../models/merchantApplicationModel.js";
@@ -108,7 +110,6 @@ export const getMyMerchantApplication = async (req, res) => {
 
     const application = await getMerchantApplicationByUserId(userId, pool);
 
-
     if (!application) {
       return res.status(404).json({
         success: false,
@@ -168,14 +169,19 @@ export const resubmitMerchantApplicationController = async (req, res, next) => {
     }
 
     // 5. Call model
-    const result = await resubmitMerchantApplication(userId, applicationId, pool, {
-      ownerName,
-      storeName,
-      category,
-      tradeLicense,
-      phone,
-      complianceNote,
-    });
+    const result = await resubmitMerchantApplication(
+      userId,
+      applicationId,
+      pool,
+      {
+        ownerName,
+        storeName,
+        category,
+        tradeLicense,
+        phone,
+        complianceNote,
+      },
+    );
 
     // 6. Send successful response
     return res.status(200).json({
@@ -190,5 +196,79 @@ export const resubmitMerchantApplicationController = async (req, res, next) => {
   }
 };
 
+// Create Merchant Store
+export const postMerchantStore = async (req, res) => {
+  try {
+    // Get authenticated merchant ID
+    const merchantId = req.user?.id;
 
-// 
+    if (!merchantId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    // Normalize request data
+    const storeProfileData = {
+      storeName: req.body.storeName?.trim() || "",
+      handle: req.body.handle?.trim() || "",
+      tagline: req.body.tagline?.trim() || "",
+      description: req.body.description?.trim() || "",
+      email: req.body.email?.trim().toLowerCase() || "",
+      phone: req.body.phone?.trim() || "",
+      supportHours:
+        req.body.supportHours?.trim() || "Sat – Thu, 9:00 AM – 8:00 PM BST",
+      address: req.body.address?.trim() || "",
+      city: req.body.city?.trim() || "",
+      postalCode: req.body.postalCode?.trim() || "",
+    };
+
+    //  Check whether merchant already has a store
+    const existingStore = await findMerchantStore(merchantId);
+
+    if (existingStore) {
+      return res.status(409).json({
+        success: false,
+        message: "You have already created a store.",
+      });
+    }
+
+    // Create merchant store
+    const newStore = await createMerchantStore(merchantId, storeProfileData);
+
+    // Send response
+    return res.status(201).json({
+      success: true,
+      message: "Your store has been created successfully.",
+      storeProfile: newStore,
+    });
+  } catch (error) {
+    console.error("Create merchant store error:", error);
+
+    // Handle duplicate database constraints
+    if (error.code === "23505") {
+      if (error.constraint?.includes("store_handle")) {
+        return res.status(409).json({
+          success: false,
+          message: "This store handle is already taken.",
+          errors: {
+            handle: "Please choose another store handle.",
+          },
+        });
+      }
+
+      if (error.constraint?.includes("merchant_id")) {
+        return res.status(409).json({
+          success: false,
+          message: "You already have a store.",
+        });
+      }
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while creating your store.",
+    });
+  }
+};
