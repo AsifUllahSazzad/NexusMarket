@@ -108,6 +108,45 @@ CREATE TABLE IF NOT EXISTS products (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
+-- Create merchant stores table
+CREATE TABLE IF NOT EXISTS merchant_stores (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    merchant_id BIGINT NOT NULL UNIQUE
+        REFERENCES users(id) ON DELETE CASCADE,
+
+    store_name VARCHAR(200) NOT NULL,
+
+    store_handle VARCHAR(220) NOT NULL UNIQUE
+        CHECK (store_handle ~ '^@[a-z0-9]+(_[a-z0-9]+)*$'),
+
+    tagline VARCHAR(255),
+    description TEXT,
+
+    logo_url TEXT,
+    banner_url TEXT,
+
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(30),
+
+    support_hours VARCHAR(150),
+
+    address TEXT,
+    city VARCHAR(100),
+    postal_code VARCHAR(20),
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+
+-- Index for merchant store lookup
+CREATE INDEX IF NOT EXISTS idx_merchant_stores_merchant_id
+    ON merchant_stores(merchant_id);
+
+    
+
 BEGIN;
 
 ALTER TABLE users
@@ -120,11 +159,16 @@ CHECK (role IN ('buyer', 'merchant', 'admin'));
 COMMIT;
 
 
+-- Sku
 ALTER TABLE products
     ADD CONSTRAINT idx_products_merchant_sku UNIQUE (sku);
+    
+ALTER TABLE products
+DROP CONSTRAINT idx_products_merchant_sku;
 
-
-
+ALTER TABLE products
+ADD CONSTRAINT uq_products_merchant_sku
+UNIQUE (merchant_id, sku);
 
 
 -- verify table
@@ -169,6 +213,7 @@ SELECT * FROM merchant_applications;
 select * from merchant_application_submissions;
 SELECT * FROM buyer_profiles;
 SELECT * FROM products;
+SELECT * FROM merchant_stores;
 
 SELECT to_regclass('public.products');
 

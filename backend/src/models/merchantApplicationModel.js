@@ -1,3 +1,5 @@
+import pool from "../config/db.js";
+
 export const createMerchantApplication = async (
   client,
   name,
@@ -264,3 +266,20 @@ export const resubmitMerchantApplication = async (
     client.release();
   }
 };
+
+// // Get Single merchant store
+// export const findMerchantStore = async (merchantId) => {
+//   const query = `
+//   SELECT * FROM merchant_stores WHERE merchant_id = $1;
+//   `;
+
+//   const result = await pool.query(query, [merchantId]);
+
+//   return result.rows[0] || null;
+// };
+
+
+// // Create merchant store
+// export const createMerchantStore = async (merchantId, storename) => {
+
+// }
